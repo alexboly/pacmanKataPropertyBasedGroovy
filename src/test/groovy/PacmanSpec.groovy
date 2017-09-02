@@ -51,11 +51,15 @@ class PacmanSpec extends Specification {
 			).join("")
 		}
 
-		return boardAfterPacmanMovedToNexPosition(
-				boardAfterPacmanMovedFromCurrentPosition(board, pacmanToken),
-				positionAfterPacmanMovesLeft(board, pacmanToken),
-				pacmanToken
-		).join("")
+		if (pacmanToken == pacmanTokenFacingLeft) {
+			return boardAfterPacmanMovedToNexPosition(
+					boardAfterPacmanMovedFromCurrentPosition(board, pacmanToken),
+					positionAfterPacmanMovesLeft(board, pacmanToken),
+					pacmanToken
+			).join("")
+		}
+
+		return ""
 	}
 
 	static positionAfterPacmanMovesRight(final board, final pacmanToken) {
