@@ -57,6 +57,22 @@ class PacmanSpec extends Specification {
 		afterDotsCount << (1..100)
 	}
 
+	@Unroll
+	def "pacman eats the first dot when all the way to the right and oriented towards right"() {
+		given:
+		def initialBoard = lineOfDots(beforeDotsCount) + pacmanTokenFacingRight + lineOfDots(0)
+		def expectedFinalBoard = pacmanTokenFacingRight + lineOfDots(beforeDotsCount - 1) + lineOfDots(0) + " "
+
+		when:
+		def boardAfterMove = tick(initialBoard, pacmanTokenFacingRight)
+
+		then:
+		boardAfterMove == expectedFinalBoard
+
+		where:
+		beforeDotsCount << (1..100)
+	}
+
 	private lineOfDots(int dotsCount) {
 		return (1..<dotsCount + 1).collect { "." }.join("")
 	}
@@ -80,7 +96,10 @@ class PacmanSpec extends Specification {
 				}
 
 			case pacmanTokenFacingRight:
-				return { initialBoard, token -> initialBoard.indexOf(token) + 1 }
+				return { initialBoard, token ->
+					def indexOfToken = initialBoard.indexOf(token)
+					(indexOfToken == initialBoard.size() - 1) ? 0 : indexOfToken + 1
+				}
 
 			default:
 				return { _, __ -> "" }
