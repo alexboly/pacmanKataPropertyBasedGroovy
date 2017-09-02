@@ -1,27 +1,34 @@
-import spock.lang.Specification
+import groovy.util.logging.Log4j
+import spock.lang.*
 
+@Log4j
 class PacmanSpec extends Specification {
-	def "first spec"() {
-		given: "an initial board"
-		def board = initialBoard
+	private String pacmanToken = '>'
+
+	@Unroll
+	def "given a line of #dotsCount dots with pacman on the left oriented towards right, pacman eats the next dot on the right"() {
+		given: "a line of dots with pacman on the left oriented towards right"
+		def initialBoard = pacmanToken + lineOfDots(dotsCount)
+		def expectedFinalBoard = ' ' + pacmanToken + lineOfDots(dotsCount - 1)
 
 		when: "tick"
-		def boardAfterMove = tick(board)
+		def boardAfterMove = tick(initialBoard)
 
 		then: "the final board is"
-		boardAfterMove == finalBoard
+		boardAfterMove == expectedFinalBoard
 
-		where: "initial board, set of moves and final board"
-		initialBoard || finalBoard
-		">."         || " >"
-		">.."        || " >."
-		">..."        || " >.."
+		where: "dots count"
+		dotsCount << (2..100)
+	}
+
+	private lineOfDots(int dotsCount) {
+		return (1..dotsCount).collect { '.' }.join('')
 	}
 
 	def tick(String board) {
-		def i = board.indexOf('>')
+		def i = board.indexOf(pacmanToken)
 		def a = board.toCharArray()
-		a[i + 1] = '>'
+		a[i + 1] = pacmanToken
 		a[i] = ' '
 		return a.toString()
 	}
