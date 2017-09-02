@@ -75,7 +75,6 @@ class PacmanSpec extends Specification {
 		return (1..<dotsCount + 1).collect { "." }.join("")
 	}
 
-
 	def tick(final board, final pacmanToken) {
 		def beforeAndAfter = board.split(pacmanToken)
 		def before = beforeAndAfter[0]
