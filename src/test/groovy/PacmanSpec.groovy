@@ -8,11 +8,12 @@ class PacmanSpec extends Specification {
 	final static pacmanTokenFacingLeft = "<"
 	final static emptySpace = " "
 	final static emptyPartialLine = ""
+	public static final String dot = "."
 
 	def "pacman eats the next dot on the right when it has dots on the right and is oriented towards right"() {
 		given: "a line of dots with pacman in the middle oriented towards right"
-		def initialBoard = [lineOfDots(beforeDotsCount), pacmanTokenFacingRight, lineOfDots(afterDotsCount)].join("")
-		def expectedFinalBoard = [lineOfDots(beforeDotsCount), emptySpace, pacmanTokenFacingRight, lineOfDots(afterDotsCount - 1)].join("")
+		def initialBoard = [lineOfDots(beforeDotsCount), pacmanTokenFacingRight, lineOfDots(afterDotsCount)].collect { it.toString() }.join("")
+		def expectedFinalBoard = [lineOfDots(beforeDotsCount), emptySpace, pacmanTokenFacingRight, lineOfDots(afterDotsCount - 1)].collect { it.toString() }.join("")
 
 		when: "tick"
 		def boardAfterMove = tick(initialBoard, pacmanTokenFacingRight)
@@ -27,8 +28,8 @@ class PacmanSpec extends Specification {
 
 	def "pacman eats the next dot on the left when it has dots on the left and it's oriented towards left"() {
 		given: "a line of dots with pacman oriented towards left"
-		def initialBoard = [lineOfDots(beforeDotsCount), pacmanTokenFacingLeft, lineOfDots(afterDotsCount)].join("")
-		def expectedFinalBoard = [lineOfDots(beforeDotsCount - 1), pacmanTokenFacingLeft, emptySpace, lineOfDots(afterDotsCount)].join("")
+		def initialBoard = [lineOfDots(beforeDotsCount), pacmanTokenFacingLeft, lineOfDots(afterDotsCount)].collect { it.toString() }.join("")
+		def expectedFinalBoard = [lineOfDots(beforeDotsCount - 1), pacmanTokenFacingLeft, emptySpace, lineOfDots(afterDotsCount)].collect { it.toString() }.join("")
 
 		when: "tick"
 		def boardAfterMove = tick(initialBoard, pacmanTokenFacingLeft)
@@ -43,8 +44,8 @@ class PacmanSpec extends Specification {
 
 	def "pacman eats the last dot when all the way to the left and oriented towards left"() {
 		given:
-		def initialBoard = [pacmanTokenFacingLeft, lineOfDots(afterDotsCount)].join("")
-		def expectedFinalBoard = [emptySpace, lineOfDots(afterDotsCount - 1), pacmanTokenFacingLeft].join("")
+		def initialBoard = [pacmanTokenFacingLeft, lineOfDots(afterDotsCount)].collect { it.toString() }.join("")
+		def expectedFinalBoard = [emptySpace, lineOfDots(afterDotsCount - 1), pacmanTokenFacingLeft].collect { it.toString() }.join("")
 
 		when:
 		def boardAfterMove = tick(initialBoard, pacmanTokenFacingLeft)
@@ -58,8 +59,8 @@ class PacmanSpec extends Specification {
 
 	def "pacman eats the first dot when all the way to the right and oriented towards right"() {
 		given:
-		def initialBoard = [lineOfDots(beforeDotsCount), pacmanTokenFacingRight].join("")
-		def expectedFinalBoard = [pacmanTokenFacingRight, lineOfDots(beforeDotsCount - 1), emptySpace].join("")
+		def initialBoard = [lineOfDots(beforeDotsCount), pacmanTokenFacingRight].collect { it.toString() }.join("")
+		def expectedFinalBoard = [pacmanTokenFacingRight, lineOfDots(beforeDotsCount - 1), emptySpace].collect { it.toString() }.join("")
 
 		when:
 		def boardAfterMove = tick(initialBoard, pacmanTokenFacingRight)
@@ -72,7 +73,7 @@ class PacmanSpec extends Specification {
 	}
 
 	private static lineOfDots(final int dotsCount) {
-		return (1..<dotsCount + 1).collect { "." }.join("")
+		return (1..<dotsCount + 1).collect { dot }.join("")
 	}
 
 	def tick(final board, final pacmanToken) {
