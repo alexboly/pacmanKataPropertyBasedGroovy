@@ -3,16 +3,16 @@ import spock.lang.*
 
 @Log4j
 class PacmanSpec extends Specification {
-	private String pacmanToken = '>'
+	private String pacmanTokenFacingRight = '>'
 
 	@Unroll
 	def "given a line of #dotsCount dots with pacman on the left oriented towards right, pacman eats the next dot on the right"() {
 		given: "a line of dots with pacman on the left oriented towards right"
-		def initialBoard = pacmanToken + lineOfDots(dotsCount)
-		def expectedFinalBoard = ' ' + pacmanToken + lineOfDots(dotsCount - 1)
+		def initialBoard = pacmanTokenFacingRight + lineOfDots(dotsCount)
+		def expectedFinalBoard = ' ' + pacmanTokenFacingRight + lineOfDots(dotsCount - 1)
 
 		when: "tick"
-		def boardAfterMove = tick(initialBoard)
+		def boardAfterMove = tick(initialBoard, pacmanTokenFacingRight)
 
 		then: "the final board is"
 		boardAfterMove == expectedFinalBoard
@@ -25,11 +25,23 @@ class PacmanSpec extends Specification {
 		return (1..<dotsCount + 1).collect { '.' }.join('')
 	}
 
-	def tick(String board) {
-		def i = board.indexOf(pacmanToken)
-		def a = board.toCharArray()
-		a[i + 1] = pacmanToken
-		a[i] = ' '
-		return a.toString()
+	def tick(final board, final pacmanToken) {
+		return movePacmanTokenToNexPosition(
+				replacePacmanTokenWithFreeSpace(board, pacmanToken),
+				computeNextPacmanPosition(board, pacmanToken),
+				pacmanToken
+		).join("")
+	}
+
+	private computeNextPacmanPosition(final board, final pacmanToken) {
+		return board.indexOf(pacmanToken) + 1
+	}
+
+	def replacePacmanTokenWithFreeSpace(final board, final pacmanToken) {
+		return board.collect { it == pacmanToken ? " " : it }
+	}
+
+	def movePacmanTokenToNexPosition(final board, final pacmanNextPosition, final pacmanToken) {
+		return board.indexed().collect { index, item -> (index == pacmanNextPosition) ? pacmanToken : item }
 	}
 }
