@@ -10,11 +10,25 @@ class PacmanSpec extends Specification {
 	final static emptyPartialLine = ""
 	final static dot = "."
 
+	enum KindOfToken {
+		Empty,
+		Dot,
+		PacmanLeft,
+		PacmanRight
+
+		@Override
+		String toString() {
+			if (this == Dot) return dot
+			if (this == PacmanLeft) return pacmanTokenFacingLeft
+			if (this == PacmanRight) return pacmanTokenFacingRight
+			return emptySpace
+		}
+	}
 
 	def "pacman eats the next dot on the right when it has dots on the right and is oriented towards right"() {
 		given: "a line of dots with pacman in the middle oriented towards right"
-		def initialBoard = [lineOfDots(beforeDotsCount), pacmanTokenFacingRight, lineOfDots(afterDotsCount)].collect { it.toString() }.join("")
-		def expectedFinalBoard = [lineOfDots(beforeDotsCount), emptySpace, pacmanTokenFacingRight, lineOfDots(afterDotsCount - 1)].collect { it.toString() }.join("")
+		def initialBoard = [lineOfDots(beforeDotsCount), KindOfToken.PacmanRight, lineOfDots(afterDotsCount)].collect { it.toString() }.join("")
+		def expectedFinalBoard = [lineOfDots(beforeDotsCount), KindOfToken.Empty, KindOfToken.PacmanRight, lineOfDots(afterDotsCount - 1)].collect { it.toString() }.join("")
 
 		when: "tick"
 		def boardAfterMove = tick(initialBoard, pacmanTokenFacingRight)
@@ -74,7 +88,7 @@ class PacmanSpec extends Specification {
 	}
 
 	private static lineOfDots(final int dotsCount) {
-		return (1..<dotsCount + 1).collect { dot }.join("")
+		new Line(tokens: (1..<dotsCount + 1).collect { KindOfToken.Dot })
 	}
 
 	def tick(final board, final pacmanToken) {
@@ -124,5 +138,14 @@ class PacmanSpec extends Specification {
 
 	def minusFirst(final def partialLine) {
 		partialLine.substring(1)
+	}
+}
+
+class Line {
+	def tokens
+
+	@Override
+	String toString() {
+		tokens.collect { it.toString() }.join("")
 	}
 }
