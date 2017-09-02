@@ -8,7 +8,8 @@ class PacmanSpec extends Specification {
 	final static pacmanTokenFacingLeft = "<"
 	final static emptySpace = " "
 	final static emptyPartialLine = ""
-	public static final String dot = "."
+	final static dot = "."
+
 
 	def "pacman eats the next dot on the right when it has dots on the right and is oriented towards right"() {
 		given: "a line of dots with pacman in the middle oriented towards right"
