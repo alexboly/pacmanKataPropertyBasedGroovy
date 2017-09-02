@@ -3,14 +3,14 @@ import spock.lang.*
 
 @Log4j
 class PacmanSpec extends Specification {
-	def pacmanTokenFacingRight = '>'
-	def pacmanTokenFacingLeft = '<'
+	final static pacmanTokenFacingRight = ">"
+	final static pacmanTokenFacingLeft = "<"
 
 	@Unroll
 	def "given a line of #dotsCount dots with pacman on the left oriented towards right, pacman eats the next dot on the right"() {
 		given: "a line of dots with pacman on the left oriented towards right"
 		def initialBoard = pacmanTokenFacingRight + lineOfDots(dotsCount)
-		def expectedFinalBoard = ' ' + pacmanTokenFacingRight + lineOfDots(dotsCount - 1)
+		def expectedFinalBoard = " " + pacmanTokenFacingRight + lineOfDots(dotsCount - 1)
 
 		when: "tick"
 		def boardAfterMove = tick(initialBoard, pacmanTokenFacingRight)
@@ -26,7 +26,7 @@ class PacmanSpec extends Specification {
 	def "given a line of #dotsCount dots with pacman on the right oriented towards left, pacman eats the next dot on the left"() {
 		given: "a line of dots with pacman on the right oriented towards left"
 		def initialBoard = lineOfDots(dotsCount) + pacmanTokenFacingLeft
-		def expectedFinalBoard = lineOfDots(dotsCount - 1) + pacmanTokenFacingLeft + ' '
+		def expectedFinalBoard = lineOfDots(dotsCount - 1) + pacmanTokenFacingLeft + " "
 
 		when: "tick"
 		def boardAfterMove = tick(initialBoard, pacmanTokenFacingLeft)
@@ -39,7 +39,7 @@ class PacmanSpec extends Specification {
 	}
 
 	private lineOfDots(int dotsCount) {
-		return (1..<dotsCount + 1).collect { '.' }.join('')
+		return (1..<dotsCount + 1).collect { "." }.join("")
 	}
 
 	def tick(final board, final pacmanToken) {
