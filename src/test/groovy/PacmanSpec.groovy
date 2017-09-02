@@ -7,8 +7,7 @@ class PacmanSpec extends Specification {
 	final static pacmanTokenFacingRight = ">"
 	final static pacmanTokenFacingLeft = "<"
 
-	@Unroll
-	def "pacman eats the next dot on the right when it's placed after #beforeDotsCount dots and has #afterDotsCount after it and it's oriented towards right"() {
+	def "pacman eats the next dot on the right when it has dots on the right and is oriented towards right"() {
 		given: "a line of dots with pacman in the middle oriented towards right"
 		def initialBoard = lineOfDots(beforeDotsCount) + pacmanTokenFacingRight + lineOfDots(afterDotsCount)
 		def expectedFinalBoard = lineOfDots(beforeDotsCount) + " " + pacmanTokenFacingRight + lineOfDots(afterDotsCount - 1)
@@ -24,8 +23,7 @@ class PacmanSpec extends Specification {
 		afterDotsCount << Gen.integer(1..100).take(50)
 	}
 
-	@Unroll
-	def "pacman eats the next dot on the left when it's placed after #beforeDotsCount dots and has #afterDotsCount after it and it's oriented towards left"() {
+	def "pacman eats the next dot on the left when it has dots on the left and it's oriented towards left"() {
 		given: "a line of dots with pacman oriented towards left"
 		def initialBoard = lineOfDots(beforeDotsCount) + pacmanTokenFacingLeft + lineOfDots(afterDotsCount)
 		def expectedFinalBoard = lineOfDots(beforeDotsCount - 1) + pacmanTokenFacingLeft + " " + lineOfDots(afterDotsCount)
@@ -41,7 +39,6 @@ class PacmanSpec extends Specification {
 		afterDotsCount << Gen.integer(1..100).take(50)
 	}
 
-	@Unroll
 	def "pacman eats the last dot when all the way to the left and oriented towards left"() {
 		given:
 		def initialBoard = lineOfDots(0) + pacmanTokenFacingLeft + lineOfDots(afterDotsCount)
@@ -57,7 +54,6 @@ class PacmanSpec extends Specification {
 		afterDotsCount << (1..100)
 	}
 
-	@Unroll
 	def "pacman eats the first dot when all the way to the right and oriented towards right"() {
 		given:
 		def initialBoard = lineOfDots(beforeDotsCount) + pacmanTokenFacingRight + lineOfDots(0)
@@ -73,7 +69,7 @@ class PacmanSpec extends Specification {
 		beforeDotsCount << (1..100)
 	}
 
-	private lineOfDots(int dotsCount) {
+	private static lineOfDots(int dotsCount) {
 		return (1..<dotsCount + 1).collect { "." }.join("")
 	}
 
