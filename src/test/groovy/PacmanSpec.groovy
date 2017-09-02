@@ -7,6 +7,7 @@ class PacmanSpec extends Specification {
 	final static pacmanTokenFacingRight = ">"
 	final static pacmanTokenFacingLeft = "<"
 	final static emptySpace = " "
+	final static emptyPartialLine = ""
 
 	def "pacman eats the next dot on the right when it has dots on the right and is oriented towards right"() {
 		given: "a line of dots with pacman in the middle oriented towards right"
@@ -80,30 +81,32 @@ class PacmanSpec extends Specification {
 		def before = beforeAndAfter[0]
 		def after = beforeAndAfter.size() == 2 ? beforeAndAfter[1] : ""
 
-		def emptyPartialLine = ""
-		def newBefore = ""
-		def newAfter = ""
-
-		if (pacmanToken == pacmanTokenFacingRight && after.isEmpty()) {
-			newBefore = emptyPartialLine
-			newAfter = emptySpaceAfter(minusFirst(before))
-		}
-		if (pacmanToken == pacmanTokenFacingRight && !after.isEmpty()) {
-			newBefore = emptySpaceAfter(before)
-			newAfter = minusFirst(after)
-		}
-
-		if (pacmanToken == pacmanTokenFacingLeft && before.isEmpty()) {
-			newBefore = emptySpaceAfter(before) + minusLast(after)
-			newAfter = emptyPartialLine
-		}
-
-		if (pacmanToken == pacmanTokenFacingLeft && !before.isEmpty()) {
-			newBefore = minusLast(before)
-			newAfter = emptySpaceBefore(after)
-		}
+		def (newBefore, newAfter) = computeNewBeforeAndNewAfter(after, before, pacmanToken)
 
 		return [newBefore, pacmanToken, newAfter].join("")
+	}
+
+	private computeNewBeforeAndNewAfter(after, before, pacmanToken) {
+		def pacmanAttemptsToMoveBeyondTheEndOfTheLine = (pacmanToken == pacmanTokenFacingRight && after.isEmpty())
+		if (pacmanAttemptsToMoveBeyondTheEndOfTheLine) {
+			return new Tuple2(emptyPartialLine, emptySpaceAfter(minusFirst(before)))
+		}
+
+		def pacmanAttemptsToMoveRight = (pacmanToken == pacmanTokenFacingRight && !after.isEmpty())
+		if (pacmanAttemptsToMoveRight) {
+			return new Tuple2(emptySpaceAfter(before), minusFirst(after))
+		}
+
+		def pacmanAttemptsToMoveBeforeTheBeginningOfTheLine = (pacmanToken == pacmanTokenFacingLeft && before.isEmpty())
+		if (pacmanAttemptsToMoveBeforeTheBeginningOfTheLine) {
+			return new Tuple2(emptySpaceAfter(before) + minusLast(after), emptyPartialLine)
+		}
+
+		def pacmanAttemptsToMoveLeft = (pacmanToken == pacmanTokenFacingLeft && !before.isEmpty())
+		if (pacmanAttemptsToMoveLeft) {
+			return new Tuple2(minusLast(before), emptySpaceBefore(after))
+		}
+		return ["", ""]
 	}
 
 	def emptySpaceAfter(final partialLine) {
