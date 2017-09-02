@@ -41,6 +41,22 @@ class PacmanSpec extends Specification {
 		afterDotsCount << Gen.integer(1..100).take(50)
 	}
 
+	@Unroll
+	def "pacman eats the last dot when all the way to the left and oriented towards left"() {
+		given:
+		def initialBoard = lineOfDots(0) + pacmanTokenFacingLeft + lineOfDots(afterDotsCount)
+		def expectedFinalBoard = lineOfDots(0) + " " + lineOfDots(afterDotsCount - 1) + pacmanTokenFacingLeft
+
+		when:
+		def boardAfterMove = tick(initialBoard, pacmanTokenFacingLeft)
+
+		then:
+		boardAfterMove == expectedFinalBoard
+
+		where:
+		afterDotsCount << (1..100)
+	}
+
 	private lineOfDots(int dotsCount) {
 		return (1..<dotsCount + 1).collect { "." }.join("")
 	}
@@ -58,7 +74,10 @@ class PacmanSpec extends Specification {
 	private static nextPositionFunctionByOrientation(pacmanToken) {
 		switch (pacmanToken) {
 			case pacmanTokenFacingLeft:
-				return { initialBoard, token -> initialBoard.indexOf(token) - 1 }
+				return { initialBoard, token ->
+					def indexOfToken = initialBoard.indexOf(token)
+					(indexOfToken == 0) ? initialBoard.size() - 1 : indexOfToken - 1
+				}
 
 			case pacmanTokenFacingRight:
 				return { initialBoard, token -> initialBoard.indexOf(token) + 1 }
