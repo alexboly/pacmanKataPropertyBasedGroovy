@@ -1,0 +1,33 @@
+/// Apply the groovy plugin to add support for Groovy
+apply plugin: 'groovy'
+
+// Apply the application plugin to add support for building an application
+apply plugin: 'application'
+
+repositories {
+    mavenCentral()
+    jcenter()
+}
+
+dependencies {
+    // Use the latest Groovy version for building this library
+    compile 'org.codehaus.groovy:groovy-all:2.4.11'
+
+    // Use the awesome Spock testing and specification framework
+    testCompile 'org.spockframework:spock-core:1.0-groovy-2.4'
+
+    // Logging
+    testCompile "log4j:log4j:1.2.16"
+    testCompile "org.slf4j:slf4j-simple:1.6.1"
+    testCompile "commons-logging:commons-logging-api:1.1"
+
+    // Mocking
+    testCompile "com.nagternal:spock-genesis:0.3.0"
+	testRuntime "cglib:cglib-nodep:3.2.4"          // allows mocking of classes (in addition to interfaces)
+	testRuntime "org.objenesis:objenesis:2.4"    // allows mocking of classes without default constructor (together with CGLIB)
+}
+ 
+
+// Define the main class for the application
+mainClassName = 'App'
+
