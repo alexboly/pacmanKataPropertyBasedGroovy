@@ -33,15 +33,15 @@ class PacmanSpec extends Specification {
 		).join("")
 	}
 
-	private positionAfterPacmanMovesRight(final board, final pacmanToken) {
+	static positionAfterPacmanMovesRight(final board, final pacmanToken) {
 		return board.indexOf(pacmanToken) + 1
 	}
 
-	def boardAfterPacmanMovedFromCurrentPosition(final board, final pacmanToken) {
+	static boardAfterPacmanMovedFromCurrentPosition(final board, final pacmanToken) {
 		return board.collect { it == pacmanToken ? " " : it }
 	}
 
-	def boardAfterPacmanMovedToNexPosition(final board, final pacmanNextPosition, final pacmanToken) {
+	static boardAfterPacmanMovedToNexPosition(final board, final pacmanNextPosition, final pacmanToken) {
 		return board.indexed().collect { index, item -> (index == pacmanNextPosition) ? pacmanToken : item }
 	}
 }
