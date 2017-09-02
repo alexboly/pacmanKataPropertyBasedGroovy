@@ -80,18 +80,45 @@ class PacmanSpec extends Specification {
 		def before = beforeAndAfter[0]
 		def after = beforeAndAfter.size() == 2 ? beforeAndAfter[1] : ""
 
-		if (pacmanToken == pacmanTokenFacingRight) {
-			if (after.size() == 0) {
-				return [pacmanToken, before.substring(0, before.size() - 1), emptySpace].join("")
-			}
-			return [before, emptySpace, pacmanToken, after.substring(1)].join("")
+		def emptyPartialLine = ""
+		def newBefore = ""
+		def newAfter = ""
+
+		if (pacmanToken == pacmanTokenFacingRight && after.isEmpty()) {
+			newBefore = emptyPartialLine
+			newAfter = emptySpaceAfter(minusFirst(before))
 		}
-		if (pacmanToken == pacmanTokenFacingLeft) {
-			if (before.size() == 0){
-				return [emptySpace, after.substring(0, after.size() - 1), pacmanToken].join("")
-			}
-			return [before.substring(0, before.size() - 1), pacmanToken, emptySpace, after].join("")
+		if (pacmanToken == pacmanTokenFacingRight && !after.isEmpty()) {
+			newBefore = emptySpaceAfter(before)
+			newAfter = minusFirst(after)
 		}
-		return ""
+
+		if (pacmanToken == pacmanTokenFacingLeft && before.isEmpty()) {
+			newBefore = emptySpaceAfter(before) + minusLast(after)
+			newAfter = emptyPartialLine
+		}
+
+		if (pacmanToken == pacmanTokenFacingLeft && !before.isEmpty()) {
+			newBefore = minusLast(before)
+			newAfter = emptySpaceBefore(after)
+		}
+
+		return [newBefore, pacmanToken, newAfter].join("")
+	}
+
+	def emptySpaceAfter(final partialLine) {
+		partialLine + emptySpace
+	}
+
+	def emptySpaceBefore(final partialLine) {
+		emptySpace + partialLine
+	}
+
+	def minusLast(final def partialLine) {
+		partialLine.substring(0, partialLine.size() - 1)
+	}
+
+	def minusFirst(final def partialLine) {
+		partialLine.substring(1)
 	}
 }
