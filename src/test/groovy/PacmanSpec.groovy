@@ -26,22 +26,22 @@ class PacmanSpec extends Specification {
 	}
 
 	def tick(final board, final pacmanToken) {
-		return movePacmanTokenToNexPosition(
-				replacePacmanTokenWithFreeSpace(board, pacmanToken),
-				computeNextPacmanPosition(board, pacmanToken),
+		return boardAfterPacmanMovedToNexPosition(
+				boardAfterPacmanMovedFromCurrentPosition(board, pacmanToken),
+				positionAfterPacmanMovesRight(board, pacmanToken),
 				pacmanToken
 		).join("")
 	}
 
-	private computeNextPacmanPosition(final board, final pacmanToken) {
+	private positionAfterPacmanMovesRight(final board, final pacmanToken) {
 		return board.indexOf(pacmanToken) + 1
 	}
 
-	def replacePacmanTokenWithFreeSpace(final board, final pacmanToken) {
+	def boardAfterPacmanMovedFromCurrentPosition(final board, final pacmanToken) {
 		return board.collect { it == pacmanToken ? " " : it }
 	}
 
-	def movePacmanTokenToNexPosition(final board, final pacmanNextPosition, final pacmanToken) {
+	def boardAfterPacmanMovedToNexPosition(final board, final pacmanNextPosition, final pacmanToken) {
 		return board.indexed().collect { index, item -> (index == pacmanNextPosition) ? pacmanToken : item }
 	}
 }
