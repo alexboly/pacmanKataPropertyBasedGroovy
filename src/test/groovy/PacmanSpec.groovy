@@ -74,40 +74,24 @@ class PacmanSpec extends Specification {
 		return (1..<dotsCount + 1).collect { "." }.join("")
 	}
 
+
 	def tick(final board, final pacmanToken) {
-		def computeNextPositionFunction = nextPositionFunctionByOrientation(pacmanToken)
+		def beforeAndAfter = board.split(pacmanToken)
+		def before = beforeAndAfter[0]
+		def after = beforeAndAfter.size() == 2 ? beforeAndAfter[1] : ""
 
-		return boardAfterPacmanMovedToNexPosition(
-				boardAfterPacmanMovedFromCurrentPosition(board, pacmanToken),
-				computeNextPositionFunction(board, pacmanToken),
-				pacmanToken
-		).join("")
-	}
-
-	private static nextPositionFunctionByOrientation(pacmanToken) {
-		switch (pacmanToken) {
-			case pacmanTokenFacingLeft:
-				return { initialBoard, token ->
-					def indexOfToken = initialBoard.indexOf(token)
-					(indexOfToken == 0) ? initialBoard.size() - 1 : indexOfToken - 1
-				}
-
-			case pacmanTokenFacingRight:
-				return { initialBoard, token ->
-					def indexOfToken = initialBoard.indexOf(token)
-					(indexOfToken == initialBoard.size() - 1) ? 0 : indexOfToken + 1
-				}
-
-			default:
-				return { _, __ -> "" }
+		if (pacmanToken == pacmanTokenFacingRight) {
+			if (after.size() == 0) {
+				return [pacmanToken, before.substring(0, before.size() - 1), emptySpace].join("")
+			}
+			return [before, emptySpace, pacmanToken, after.substring(1)].join("")
 		}
-	}
-
-	static boardAfterPacmanMovedFromCurrentPosition(final board, final pacmanToken) {
-		return board.collect { it == pacmanToken ? " " : it }
-	}
-
-	static boardAfterPacmanMovedToNexPosition(final board, final pacmanNextPosition, final pacmanToken) {
-		return board.indexed().collect { index, item -> (index == pacmanNextPosition) ? pacmanToken : item }
+		if (pacmanToken == pacmanTokenFacingLeft) {
+			if (before.size() == 0){
+				return [emptySpace, after.substring(0, after.size() - 1), pacmanToken].join("")
+			}
+			return [before.substring(0, before.size() - 1), pacmanToken, emptySpace, after].join("")
+		}
+		return ""
 	}
 }
