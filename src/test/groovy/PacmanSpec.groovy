@@ -18,11 +18,11 @@ class PacmanSpec extends Specification {
 		boardAfterMove == expectedFinalBoard
 
 		where: "dots count"
-		dotsCount << (2..100)
+		dotsCount << (1..100)
 	}
 
 	private lineOfDots(int dotsCount) {
-		return (1..dotsCount).collect { '.' }.join('')
+		return (1..<dotsCount + 1).collect { '.' }.join('')
 	}
 
 	def tick(String board) {
