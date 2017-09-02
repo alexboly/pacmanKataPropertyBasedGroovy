@@ -69,7 +69,7 @@ class PacmanSpec extends Specification {
 		beforeDotsCount << (1..100)
 	}
 
-	private static lineOfDots(int dotsCount) {
+	private static lineOfDots(final int dotsCount) {
 		return (1..<dotsCount + 1).collect { "." }.join("")
 	}
 
