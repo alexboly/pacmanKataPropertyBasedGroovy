@@ -43,23 +43,22 @@ class PacmanSpec extends Specification {
 	}
 
 	def tick(final board, final pacmanToken) {
-		if (pacmanToken == pacmanTokenFacingRight) {
-			return boardAfterPacmanMovedToNexPosition(
-					boardAfterPacmanMovedFromCurrentPosition(board, pacmanToken),
-					positionAfterPacmanMovesRight(board, pacmanToken),
-					pacmanToken
-			).join("")
+		def computeNextPositionFunction = { _, __ -> "" }
+		switch (pacmanToken) {
+			case pacmanTokenFacingLeft:
+				computeNextPositionFunction = PacmanSpec.&positionAfterPacmanMovesLeft
+				break
+
+			case pacmanTokenFacingRight:
+				computeNextPositionFunction = PacmanSpec.&positionAfterPacmanMovesRight
+				break
 		}
 
-		if (pacmanToken == pacmanTokenFacingLeft) {
-			return boardAfterPacmanMovedToNexPosition(
-					boardAfterPacmanMovedFromCurrentPosition(board, pacmanToken),
-					positionAfterPacmanMovesLeft(board, pacmanToken),
-					pacmanToken
-			).join("")
-		}
-
-		return ""
+		return boardAfterPacmanMovedToNexPosition(
+				boardAfterPacmanMovedFromCurrentPosition(board, pacmanToken),
+				computeNextPositionFunction(board, pacmanToken),
+				pacmanToken
+		).join("")
 	}
 
 	static positionAfterPacmanMovesRight(final board, final pacmanToken) {
