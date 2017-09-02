@@ -46,11 +46,11 @@ class PacmanSpec extends Specification {
 		def computeNextPositionFunction = { _, __ -> "" }
 		switch (pacmanToken) {
 			case pacmanTokenFacingLeft:
-				computeNextPositionFunction = PacmanSpec.&positionAfterPacmanMovesLeft
+				computeNextPositionFunction = { initialBoard, token -> initialBoard.indexOf(token) - 1 }
 				break
 
 			case pacmanTokenFacingRight:
-				computeNextPositionFunction = PacmanSpec.&positionAfterPacmanMovesRight
+				computeNextPositionFunction = { initialBoard, token -> initialBoard.indexOf(token) + 1 }
 				break
 		}
 
@@ -59,14 +59,6 @@ class PacmanSpec extends Specification {
 				computeNextPositionFunction(board, pacmanToken),
 				pacmanToken
 		).join("")
-	}
-
-	static positionAfterPacmanMovesRight(final board, final pacmanToken) {
-		return board.indexOf(pacmanToken) + 1
-	}
-
-	static positionAfterPacmanMovesLeft(final board, final pacmanToken) {
-		return board.indexOf(pacmanToken) - 1
 	}
 
 	static boardAfterPacmanMovedFromCurrentPosition(final board, final pacmanToken) {
