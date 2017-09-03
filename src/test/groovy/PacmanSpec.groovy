@@ -100,9 +100,9 @@ class PacmanSpec extends Specification {
 		def before = beforeToken(board, pacmanToken)
 		def after = afterToken(board, pacmanToken)
 
-		def (newBefore, newAfter) = computeNewBeforeAndNewAfter(before, after, pacmanToken)
+		def result = computeNewBeforeAndNewAfter(before, after, pacmanToken)
 
-		return newBefore + pacmanToken + newAfter
+		return result.before + pacmanToken + result.after
 	}
 
 	def beforeToken(line, token){
@@ -120,22 +120,22 @@ class PacmanSpec extends Specification {
 	private computeNewBeforeAndNewAfter(before, after, pacmanToken) {
 		def pacmanAttemptsToMoveBeyondTheEndOfTheLine = (pacmanToken == KindOfToken.PacmanRight && after.isEmpty())
 		if (pacmanAttemptsToMoveBeyondTheEndOfTheLine) {
-			return new Tuple2(emptyPartialLine, emptySpaceAfter(minusFirst(before)))
+			return [before: emptyPartialLine, after: emptySpaceAfter(minusFirst(before))]
 		}
 
 		def pacmanAttemptsToMoveRight = (pacmanToken == KindOfToken.PacmanRight && !after.isEmpty())
 		if (pacmanAttemptsToMoveRight) {
-			return new Tuple2(emptySpaceAfter(before), minusFirst(after))
+			return [before: emptySpaceAfter(before), after: minusFirst(after)]
 		}
 
 		def pacmanAttemptsToMoveBeforeTheBeginningOfTheLine = (pacmanToken == KindOfToken.PacmanLeft && before.isEmpty())
 		if (pacmanAttemptsToMoveBeforeTheBeginningOfTheLine) {
-			return new Tuple2(emptySpaceAfter(before) + minusLast(after), emptyPartialLine)
+			return [before: emptySpaceAfter(before) + minusLast(after), after: emptyPartialLine]
 		}
 
 		def pacmanAttemptsToMoveLeft = (pacmanToken == KindOfToken.PacmanLeft && !before.isEmpty())
 		if (pacmanAttemptsToMoveLeft) {
-			return new Tuple2(minusLast(before), emptySpaceBefore(after))
+			return [before: minusLast(before), after: emptySpaceBefore(after)]
 		}
 		return [[], []]
 	}
