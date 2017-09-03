@@ -36,8 +36,8 @@ class PacmanSpec extends Specification {
 
 	def "pacman eats the next dot on the right when it has dots on the right and is oriented towards right"() {
 		given: "a line of dots with pacman in the middle oriented towards right"
-		def initialBoard = lineOfDots(beforeDotsCount) + KindOfToken.PacmanRight + lineOfDots(afterDotsCount)
-		def expectedFinalBoard = lineOfDots(beforeDotsCount) + KindOfToken.Empty + KindOfToken.PacmanRight + lineOfDots(afterDotsCount - 1)
+		def initialBoard = [lineOfDots(beforeDotsCount) + KindOfToken.PacmanRight + lineOfDots(afterDotsCount)]
+		def expectedFinalBoard = [lineOfDots(beforeDotsCount) + KindOfToken.Empty + KindOfToken.PacmanRight + lineOfDots(afterDotsCount - 1)]
 
 		when: "tick"
 		def boardAfterMove = tick(initialBoard)
@@ -52,8 +52,8 @@ class PacmanSpec extends Specification {
 
 	def "pacman eats the first dot when all the way to the right and oriented towards right"() {
 		given:
-		def initialBoard = lineOfDots(beforeDotsCount) + KindOfToken.PacmanRight
-		def expectedFinalBoard = KindOfToken.PacmanRight + lineOfDots(beforeDotsCount - 1) + KindOfToken.Empty
+		def initialBoard = [lineOfDots(beforeDotsCount) + KindOfToken.PacmanRight]
+		def expectedFinalBoard = [KindOfToken.PacmanRight + lineOfDots(beforeDotsCount - 1) + KindOfToken.Empty]
 
 		when:
 		def boardAfterMove = tick(initialBoard)
@@ -85,8 +85,8 @@ class PacmanSpec extends Specification {
 
 	def "pacman eats the next dot on the left when it has dots on the left and it's oriented towards left"() {
 		given: "a line of dots with pacman oriented towards left"
-		def initialBoard = lineOfDots(beforeDotsCount) + KindOfToken.PacmanLeft + lineOfDots(afterDotsCount)
-		def expectedFinalBoard = lineOfDots(beforeDotsCount - 1) + KindOfToken.PacmanLeft + KindOfToken.Empty + lineOfDots(afterDotsCount)
+		def initialBoard = [lineOfDots(beforeDotsCount) + KindOfToken.PacmanLeft + lineOfDots(afterDotsCount)]
+		def expectedFinalBoard = [lineOfDots(beforeDotsCount - 1) + KindOfToken.PacmanLeft + KindOfToken.Empty + lineOfDots(afterDotsCount)]
 
 		when: "tick"
 		def boardAfterMove = tick(initialBoard)
@@ -101,8 +101,8 @@ class PacmanSpec extends Specification {
 
 	def "pacman eats the last dot when all the way to the left and oriented towards left"() {
 		given:
-		def initialBoard = KindOfToken.PacmanLeft + lineOfDots(afterDotsCount)
-		def expectedFinalBoard = KindOfToken.Empty + lineOfDots(afterDotsCount - 1) + KindOfToken.PacmanLeft
+		def initialBoard = [KindOfToken.PacmanLeft + lineOfDots(afterDotsCount)]
+		def expectedFinalBoard = [KindOfToken.Empty + lineOfDots(afterDotsCount - 1) + KindOfToken.PacmanLeft]
 
 		when:
 		def boardAfterMove = tick(initialBoard)
@@ -123,13 +123,13 @@ class PacmanSpec extends Specification {
 	}
 
 	def tick(final board) {
-		def line = board
+		def line = board.first()
 		def possiblePacmanTokens = [KindOfToken.PacmanLeft, KindOfToken.PacmanRight]
 		def existingToken = line.intersect(possiblePacmanTokens).first()
 
 		def newLine = computeNewLine(line, existingToken)
 
-		def newBoard = newLine
+		def newBoard = [newLine]
 		return newBoard
 	}
 
