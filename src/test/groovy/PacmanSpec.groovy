@@ -39,7 +39,7 @@ class PacmanSpec extends Specification {
 		def boardAfterMove = tick(initialBoard)
 
 		then: "the final board is"
-		boardAfterMove.join("") == expectedFinalBoard.join("")
+		boardAfterMove == expectedFinalBoard
 
 		where: "dots count"
 		beforeDotsCount << (0..<50)
@@ -55,7 +55,7 @@ class PacmanSpec extends Specification {
 		def boardAfterMove = tick(initialBoard)
 
 		then: "the final board is"
-		boardAfterMove.join("") == expectedFinalBoard.join("")
+		boardAfterMove == expectedFinalBoard
 
 		where: "dots count"
 		beforeDotsCount << (1..50)
@@ -71,7 +71,7 @@ class PacmanSpec extends Specification {
 		def boardAfterMove = tick(initialBoard)
 
 		then:
-		boardAfterMove.join("") == expectedFinalBoard.join("")
+		boardAfterMove == expectedFinalBoard
 
 		where:
 		afterDotsCount << (1..100)
@@ -86,7 +86,7 @@ class PacmanSpec extends Specification {
 		def boardAfterMove = tick(initialBoard)
 
 		then:
-		boardAfterMove.join("") == expectedFinalBoard.join("")
+		boardAfterMove == expectedFinalBoard
 
 		where:
 		beforeDotsCount << (1..100)
