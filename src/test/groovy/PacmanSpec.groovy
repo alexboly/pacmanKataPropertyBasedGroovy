@@ -1,4 +1,3 @@
-import PacmanSpec.KindOfToken
 import groovy.util.logging.Log4j
 import spock.genesis.Gen
 import spock.lang.Specification
@@ -23,6 +22,10 @@ class PacmanSpec extends Specification {
 			if (this == PacmanLeft) return pacmanTokenFacingLeft
 			if (this == PacmanRight) return pacmanTokenFacingRight
 			return emptySpace
+		}
+
+		Line plus(Line line) {
+			new Line(tokens: [this] + line.tokens)
 		}
 	}
 
@@ -60,8 +63,8 @@ class PacmanSpec extends Specification {
 
 	def "pacman eats the last dot when all the way to the left and oriented towards left"() {
 		given:
-		def initialBoard = [pacmanTokenFacingLeft, lineOfDots(afterDotsCount)].collect { it.toString() }.join("")
-		def expectedFinalBoard = [emptySpace, lineOfDots(afterDotsCount - 1), pacmanTokenFacingLeft].collect { it.toString() }.join("")
+		def initialBoard = (KindOfToken.PacmanLeft + lineOfDots(afterDotsCount)).collect { it.toString() }.join("")
+		def expectedFinalBoard = (KindOfToken.Empty + lineOfDots(afterDotsCount - 1) + KindOfToken.PacmanLeft).collect { it.toString() }.join("")
 
 		when:
 		def boardAfterMove = tick(initialBoard, pacmanTokenFacingLeft)
@@ -75,8 +78,8 @@ class PacmanSpec extends Specification {
 
 	def "pacman eats the first dot when all the way to the right and oriented towards right"() {
 		given:
-		def initialBoard = [lineOfDots(beforeDotsCount), pacmanTokenFacingRight].collect { it.toString() }.join("")
-		def expectedFinalBoard = [pacmanTokenFacingRight, lineOfDots(beforeDotsCount - 1), emptySpace].collect { it.toString() }.join("")
+		def initialBoard = (lineOfDots(beforeDotsCount) + KindOfToken.PacmanRight).collect { it.toString() }.join("")
+		def expectedFinalBoard = (KindOfToken.PacmanRight + lineOfDots(beforeDotsCount - 1) + KindOfToken.Empty).collect { it.toString() }.join("")
 
 		when:
 		def boardAfterMove = tick(initialBoard, pacmanTokenFacingRight)
@@ -150,11 +153,11 @@ class Line {
 		tokens.collect { it.toString() }.join("")
 	}
 
-	Line plus(KindOfToken token){
+	Line plus(PacmanSpec.KindOfToken token) {
 		new Line(tokens: tokens + token)
 	}
 
-	Line plus(Line another){
+	Line plus(Line another) {
 		new Line(tokens: tokens + another.tokens)
 	}
 }
