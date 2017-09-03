@@ -1,11 +1,13 @@
 import groovy.util.logging.Log4j
 import spock.genesis.Gen
+import spock.lang.Ignore
 import spock.lang.Specification
 
 @Log4j
 class PacmanSpec extends Specification {
 	final static pacmanTokenFacingRight = ">"
 	final static pacmanTokenFacingLeft = "<"
+	final static pacmanTokenFacingDown = "v"
 	final static emptySpace = " "
 	final static dot = "."
 	final static emptyPartialLine = []
@@ -14,13 +16,15 @@ class PacmanSpec extends Specification {
 		Empty,
 		Dot,
 		PacmanLeft,
-		PacmanRight
+		PacmanRight,
+		PacmanDown
 
 		@Override
 		String toString() {
 			if (this == Dot) return dot
 			if (this == PacmanLeft) return pacmanTokenFacingLeft
 			if (this == PacmanRight) return pacmanTokenFacingRight
+			if (this == PacmanDown) return pacmanTokenFacingDown
 			if (this == Empty) return emptySpace
 			return ""
 		}
@@ -61,6 +65,24 @@ class PacmanSpec extends Specification {
 		beforeDotsCount << (1..100)
 	}
 
+	@Ignore
+	def "pacman eats the next dot down when it has dots down and is oriented down"() {
+		given: "a line of dots with pacman in the middle oriented towards right"
+		def initialBoard = columnOfDots(beforeDotsCount) + KindOfToken.PacmanDown + columnOfDots(afterDotsCount)
+		def expectedFinalBoard = columnOfDots(beforeDotsCount) + KindOfToken.Empty + KindOfToken.PacmanDown + columnOfDots(afterDotsCount - 1)
+
+		when: "tick"
+		def boardAfterMove = tick(initialBoard)
+
+		then: "the final board is"
+		boardAfterMove == expectedFinalBoard
+
+		where: "dots count"
+		beforeDotsCount << (0..<50)
+		afterDotsCount << Gen.integer(1..100).take(50)
+	}
+
+
 	def "pacman eats the next dot on the left when it has dots on the left and it's oriented towards left"() {
 		given: "a line of dots with pacman oriented towards left"
 		def initialBoard = lineOfDots(beforeDotsCount) + KindOfToken.PacmanLeft + lineOfDots(afterDotsCount)
@@ -96,14 +118,25 @@ class PacmanSpec extends Specification {
 		(1..<dotsCount + 1).collect { KindOfToken.Dot }
 	}
 
+	static columnOfDots(final int dotsCount){
+		(1..<dotsCount + 1).collect{ [KindOfToken.Dot]}
+	}
+
 	def tick(final board) {
+		def line = board
 		def possiblePacmanTokens = [KindOfToken.PacmanLeft, KindOfToken.PacmanRight]
-		def existingToken = board.intersect(possiblePacmanTokens).first()
-		def before = beforeToken(board, existingToken)
-		def after = afterToken(board, existingToken)
+		def existingToken = line.intersect(possiblePacmanTokens).first()
 
+		def newLine = computeNewLine(line, existingToken)
+
+		def newBoard = newLine
+		return newBoard
+	}
+
+	private computeNewLine(line, existingToken) {
+		def before = beforeToken(line, existingToken)
+		def after = afterToken(line, existingToken)
 		def result = computeNewBeforeAndNewAfter(before, after, existingToken)
-
 		return result.before + existingToken + result.after
 	}
 
