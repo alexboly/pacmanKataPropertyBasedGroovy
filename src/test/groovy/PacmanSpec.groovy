@@ -46,6 +46,21 @@ class PacmanSpec extends Specification {
 		afterDotsCount << Gen.integer(1..100).take(50)
 	}
 
+	def "pacman eats the first dot when all the way to the right and oriented towards right"() {
+		given:
+		def initialBoard = lineOfDots(beforeDotsCount) + KindOfToken.PacmanRight
+		def expectedFinalBoard = KindOfToken.PacmanRight + lineOfDots(beforeDotsCount - 1) + KindOfToken.Empty
+
+		when:
+		def boardAfterMove = tick(initialBoard)
+
+		then:
+		boardAfterMove == expectedFinalBoard
+
+		where:
+		beforeDotsCount << (1..100)
+	}
+
 	def "pacman eats the next dot on the left when it has dots on the left and it's oriented towards left"() {
 		given: "a line of dots with pacman oriented towards left"
 		def initialBoard = lineOfDots(beforeDotsCount) + KindOfToken.PacmanLeft + lineOfDots(afterDotsCount)
@@ -75,21 +90,6 @@ class PacmanSpec extends Specification {
 
 		where:
 		afterDotsCount << (1..100)
-	}
-
-	def "pacman eats the first dot when all the way to the right and oriented towards right"() {
-		given:
-		def initialBoard = lineOfDots(beforeDotsCount) + KindOfToken.PacmanRight
-		def expectedFinalBoard = KindOfToken.PacmanRight + lineOfDots(beforeDotsCount - 1) + KindOfToken.Empty
-
-		when:
-		def boardAfterMove = tick(initialBoard)
-
-		then:
-		boardAfterMove == expectedFinalBoard
-
-		where:
-		beforeDotsCount << (1..100)
 	}
 
 	private static lineOfDots(final int dotsCount) {
