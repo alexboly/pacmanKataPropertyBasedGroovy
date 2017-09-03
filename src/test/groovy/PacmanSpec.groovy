@@ -1,3 +1,4 @@
+import PacmanSpec.KindOfToken
 import groovy.util.logging.Log4j
 import spock.genesis.Gen
 import spock.lang.Specification
@@ -27,8 +28,8 @@ class PacmanSpec extends Specification {
 
 	def "pacman eats the next dot on the right when it has dots on the right and is oriented towards right"() {
 		given: "a line of dots with pacman in the middle oriented towards right"
-		def initialBoard = [lineOfDots(beforeDotsCount), KindOfToken.PacmanRight, lineOfDots(afterDotsCount)].collect { it.toString() }.join("")
-		def expectedFinalBoard = [lineOfDots(beforeDotsCount), KindOfToken.Empty, KindOfToken.PacmanRight, lineOfDots(afterDotsCount - 1)].collect { it.toString() }.join("")
+		def initialBoard = (lineOfDots(beforeDotsCount) + KindOfToken.PacmanRight + lineOfDots(afterDotsCount)).collect { it.toString() }.join("")
+		def expectedFinalBoard = (lineOfDots(beforeDotsCount) + KindOfToken.Empty + KindOfToken.PacmanRight + lineOfDots(afterDotsCount - 1)).collect { it.toString() }.join("")
 
 		when: "tick"
 		def boardAfterMove = tick(initialBoard, pacmanTokenFacingRight)
@@ -43,8 +44,8 @@ class PacmanSpec extends Specification {
 
 	def "pacman eats the next dot on the left when it has dots on the left and it's oriented towards left"() {
 		given: "a line of dots with pacman oriented towards left"
-		def initialBoard = [lineOfDots(beforeDotsCount), pacmanTokenFacingLeft, lineOfDots(afterDotsCount)].collect { it.toString() }.join("")
-		def expectedFinalBoard = [lineOfDots(beforeDotsCount - 1), pacmanTokenFacingLeft, emptySpace, lineOfDots(afterDotsCount)].collect { it.toString() }.join("")
+		def initialBoard = (lineOfDots(beforeDotsCount) + KindOfToken.PacmanLeft + lineOfDots(afterDotsCount)).collect { it.toString() }.join("")
+		def expectedFinalBoard = (lineOfDots(beforeDotsCount - 1) + KindOfToken.PacmanLeft + KindOfToken.Empty + lineOfDots(afterDotsCount)).collect { it.toString() }.join("")
 
 		when: "tick"
 		def boardAfterMove = tick(initialBoard, pacmanTokenFacingLeft)
@@ -147,5 +148,13 @@ class Line {
 	@Override
 	String toString() {
 		tokens.collect { it.toString() }.join("")
+	}
+
+	Line plus(KindOfToken token){
+		new Line(tokens: tokens + token)
+	}
+
+	Line plus(Line another){
+		new Line(tokens: tokens + another.tokens)
 	}
 }
