@@ -144,15 +144,15 @@ class PacmanSpec extends Specification {
 		partialLine + KindOfToken.Empty
 	}
 
+	def minusFirst(final def partialLine) {
+		partialLine.takeRight(partialLine.size() - 1)
+	}
+
 	def emptySpaceBefore(final partialLine) {
-		KindOfToken.Empty + partialLine
+		emptySpaceAfter(partialLine.reverse()).reverse()
 	}
 
 	def minusLast(final def partialLine) {
 		minusFirst(partialLine.reverse()).reverse()
-	}
-
-	def minusFirst(final def partialLine) {
-		partialLine.takeRight(partialLine.size() - 1)
 	}
 }
