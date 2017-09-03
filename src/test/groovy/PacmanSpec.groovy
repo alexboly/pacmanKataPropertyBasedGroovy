@@ -123,14 +123,14 @@ class PacmanSpec extends Specification {
 			return [before: emptyPartialLine, after: emptySpaceAfter(minusFirst(before))]
 		}
 
-		def pacmanAttemptsToMoveRight = (pacmanToken == KindOfToken.PacmanRight && !after.isEmpty())
-		if (pacmanAttemptsToMoveRight) {
-			return [before: emptySpaceAfter(before), after: minusFirst(after)]
-		}
-
 		def pacmanAttemptsToMoveBeforeTheBeginningOfTheLine = (pacmanToken == KindOfToken.PacmanLeft && before.isEmpty())
 		if (pacmanAttemptsToMoveBeforeTheBeginningOfTheLine) {
 			return [before: emptySpaceAfter(before) + minusLast(after), after: emptyPartialLine]
+		}
+
+		def pacmanAttemptsToMoveRight = (pacmanToken == KindOfToken.PacmanRight && !after.isEmpty())
+		if (pacmanAttemptsToMoveRight) {
+			return [before: emptySpaceAfter(before), after: minusFirst(after)]
 		}
 
 		def pacmanAttemptsToMoveLeft = (pacmanToken == KindOfToken.PacmanLeft && !before.isEmpty())
@@ -149,7 +149,7 @@ class PacmanSpec extends Specification {
 	}
 
 	def minusLast(final def partialLine) {
-		partialLine.take(partialLine.size() - 1)
+		minusFirst(partialLine.reverse()).reverse()
 	}
 
 	def minusFirst(final def partialLine) {
