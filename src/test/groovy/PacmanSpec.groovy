@@ -25,7 +25,7 @@ class PacmanSpec extends Specification {
 			return ""
 		}
 
-		def plus(ArrayList collection){
+		def plus(ArrayList collection) {
 			[this] + collection
 		}
 	}
@@ -105,39 +105,39 @@ class PacmanSpec extends Specification {
 		return result.before + pacmanToken + result.after
 	}
 
-	def beforeToken(line, token){
+	def beforeToken(line, token) {
 		def tokenIndex = line.findIndexOf { it == token }
 		def beforeSubLineTokenCount = tokenIndex
 		return line.take(beforeSubLineTokenCount)
 	}
 
-	def afterToken(line, token){
+	def afterToken(line, token) {
 		def tokenIndex = line.findIndexOf { it == token }
 		def afterSubLineTokenCount = line.size() - tokenIndex - 1
 		return line.takeRight(afterSubLineTokenCount)
 	}
 
 	private computeNewBeforeAndNewAfter(before, after, pacmanToken) {
-		def pacmanAttemptsToMoveBeyondTheEndOfTheLine = (pacmanToken == KindOfToken.PacmanRight && after.isEmpty())
-		if (pacmanAttemptsToMoveBeyondTheEndOfTheLine) {
-			return [before: emptyPartialLine, after: emptySpaceAfter(minusFirst(before))]
+		if (pacmanToken == KindOfToken.PacmanLeft) {
+			return computeNewBeforeAndNewAfterOnMoveLeft(before , after)
 		}
 
-		def pacmanAttemptsToMoveBeforeTheBeginningOfTheLine = (pacmanToken == KindOfToken.PacmanLeft && before.isEmpty())
-		if (pacmanAttemptsToMoveBeforeTheBeginningOfTheLine) {
-			return [before: emptySpaceAfter(before) + minusLast(after), after: emptyPartialLine]
-		}
-
-		def pacmanAttemptsToMoveRight = (pacmanToken == KindOfToken.PacmanRight && !after.isEmpty())
-		if (pacmanAttemptsToMoveRight) {
-			return [before: emptySpaceAfter(before), after: minusFirst(after)]
-		}
-
-		def pacmanAttemptsToMoveLeft = (pacmanToken == KindOfToken.PacmanLeft && !before.isEmpty())
-		if (pacmanAttemptsToMoveLeft) {
-			return [before: minusLast(before), after: emptySpaceBefore(after)]
+		if (pacmanToken == KindOfToken.PacmanRight) {
+			return computeNewBeforeAndNewAfterOnMoveRight(before, after)
 		}
 		return [[], []]
+	}
+
+	def computeNewBeforeAndNewAfterOnMoveRight(before, after) {
+		def pacmanAttemptsToMoveBeyondTheEndOfTheLine = (after.isEmpty())
+		return pacmanAttemptsToMoveBeyondTheEndOfTheLine ?
+		       [before: emptyPartialLine, after: emptySpaceAfter(minusFirst(before))] :
+		       [before: emptySpaceAfter(before), after: minusFirst(after)]
+	}
+
+	def computeNewBeforeAndNewAfterOnMoveLeft(before, after){
+		def result = computeNewBeforeAndNewAfterOnMoveRight(after.reverse(), before.reverse())
+		return [before: result.after.reverse(), after: result.before.reverse()]
 	}
 
 	def emptySpaceAfter(final partialLine) {
@@ -146,13 +146,5 @@ class PacmanSpec extends Specification {
 
 	def minusFirst(final def partialLine) {
 		partialLine.takeRight(partialLine.size() - 1)
-	}
-
-	def emptySpaceBefore(final partialLine) {
-		emptySpaceAfter(partialLine.reverse()).reverse()
-	}
-
-	def minusLast(final def partialLine) {
-		minusFirst(partialLine.reverse()).reverse()
 	}
 }
