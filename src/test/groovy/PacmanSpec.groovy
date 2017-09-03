@@ -24,10 +24,6 @@ class PacmanSpec extends Specification {
 			return emptySpace
 		}
 
-		Line plus(Line line) {
-			new Line(tokens: [this] + line.tokens)
-		}
-
 		def plus(ArrayList collection){
 			[this] + collection
 		}
@@ -146,22 +142,5 @@ class PacmanSpec extends Specification {
 
 	def minusFirst(final def partialLine) {
 		partialLine.substring(1)
-	}
-}
-
-class Line {
-	def tokens
-
-	@Override
-	String toString() {
-		tokens.collect { it.toString() }.join("")
-	}
-
-	Line plus(PacmanSpec.KindOfToken token) {
-		new Line(tokens: tokens + token)
-	}
-
-	Line plus(Line another) {
-		new Line(tokens: tokens + another.tokens)
 	}
 }
