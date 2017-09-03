@@ -27,6 +27,10 @@ class PacmanSpec extends Specification {
 		Line plus(Line line) {
 			new Line(tokens: [this] + line.tokens)
 		}
+
+		def plus(ArrayList collection){
+			[this] + collection
+		}
 	}
 
 	def "pacman eats the next dot on the right when it has dots on the right and is oriented towards right"() {
@@ -92,7 +96,7 @@ class PacmanSpec extends Specification {
 	}
 
 	private static lineOfDots(final int dotsCount) {
-		new Line(tokens: (1..<dotsCount + 1).collect { KindOfToken.Dot })
+		(1..<dotsCount + 1).collect { KindOfToken.Dot }
 	}
 
 	def tick(final board, final pacmanToken) {
