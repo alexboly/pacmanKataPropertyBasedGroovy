@@ -7,8 +7,8 @@ class PacmanSpec extends Specification {
 	final static pacmanTokenFacingRight = ">"
 	final static pacmanTokenFacingLeft = "<"
 	final static emptySpace = " "
-	final static emptyPartialLine = ""
 	final static dot = "."
+	final static emptyPartialLine = []
 
 	enum KindOfToken {
 		Empty,
@@ -21,7 +21,8 @@ class PacmanSpec extends Specification {
 			if (this == Dot) return dot
 			if (this == PacmanLeft) return pacmanTokenFacingLeft
 			if (this == PacmanRight) return pacmanTokenFacingRight
-			return emptySpace
+			if (this == Empty) return emptySpace
+			return ""
 		}
 
 		def plus(ArrayList collection){
@@ -31,14 +32,14 @@ class PacmanSpec extends Specification {
 
 	def "pacman eats the next dot on the right when it has dots on the right and is oriented towards right"() {
 		given: "a line of dots with pacman in the middle oriented towards right"
-		def initialBoard = (lineOfDots(beforeDotsCount) + KindOfToken.PacmanRight + lineOfDots(afterDotsCount)).collect { it.toString() }.join("")
-		def expectedFinalBoard = (lineOfDots(beforeDotsCount) + KindOfToken.Empty + KindOfToken.PacmanRight + lineOfDots(afterDotsCount - 1)).collect { it.toString() }.join("")
+		def initialBoard = lineOfDots(beforeDotsCount) + KindOfToken.PacmanRight + lineOfDots(afterDotsCount)
+		def expectedFinalBoard = lineOfDots(beforeDotsCount) + KindOfToken.Empty + KindOfToken.PacmanRight + lineOfDots(afterDotsCount - 1)
 
 		when: "tick"
-		def boardAfterMove = tick(initialBoard, pacmanTokenFacingRight)
+		def boardAfterMove = tick(initialBoard, KindOfToken.PacmanRight)
 
 		then: "the final board is"
-		boardAfterMove == expectedFinalBoard
+		boardAfterMove.join("") == expectedFinalBoard.join("")
 
 		where: "dots count"
 		beforeDotsCount << (0..<50)
@@ -47,14 +48,14 @@ class PacmanSpec extends Specification {
 
 	def "pacman eats the next dot on the left when it has dots on the left and it's oriented towards left"() {
 		given: "a line of dots with pacman oriented towards left"
-		def initialBoard = (lineOfDots(beforeDotsCount) + KindOfToken.PacmanLeft + lineOfDots(afterDotsCount)).collect { it.toString() }.join("")
-		def expectedFinalBoard = (lineOfDots(beforeDotsCount - 1) + KindOfToken.PacmanLeft + KindOfToken.Empty + lineOfDots(afterDotsCount)).collect { it.toString() }.join("")
+		def initialBoard = lineOfDots(beforeDotsCount) + KindOfToken.PacmanLeft + lineOfDots(afterDotsCount)
+		def expectedFinalBoard = lineOfDots(beforeDotsCount - 1) + KindOfToken.PacmanLeft + KindOfToken.Empty + lineOfDots(afterDotsCount)
 
 		when: "tick"
-		def boardAfterMove = tick(initialBoard, pacmanTokenFacingLeft)
+		def boardAfterMove = tick(initialBoard, KindOfToken.PacmanLeft)
 
 		then: "the final board is"
-		boardAfterMove == expectedFinalBoard
+		boardAfterMove.join("") == expectedFinalBoard.join("")
 
 		where: "dots count"
 		beforeDotsCount << (1..50)
@@ -63,14 +64,14 @@ class PacmanSpec extends Specification {
 
 	def "pacman eats the last dot when all the way to the left and oriented towards left"() {
 		given:
-		def initialBoard = (KindOfToken.PacmanLeft + lineOfDots(afterDotsCount)).collect { it.toString() }.join("")
-		def expectedFinalBoard = (KindOfToken.Empty + lineOfDots(afterDotsCount - 1) + KindOfToken.PacmanLeft).collect { it.toString() }.join("")
+		def initialBoard = KindOfToken.PacmanLeft + lineOfDots(afterDotsCount)
+		def expectedFinalBoard = KindOfToken.Empty + lineOfDots(afterDotsCount - 1) + KindOfToken.PacmanLeft
 
 		when:
-		def boardAfterMove = tick(initialBoard, pacmanTokenFacingLeft)
+		def boardAfterMove = tick(initialBoard, KindOfToken.PacmanLeft)
 
 		then:
-		boardAfterMove == expectedFinalBoard
+		boardAfterMove.join("") == expectedFinalBoard.join("")
 
 		where:
 		afterDotsCount << (1..100)
@@ -78,14 +79,14 @@ class PacmanSpec extends Specification {
 
 	def "pacman eats the first dot when all the way to the right and oriented towards right"() {
 		given:
-		def initialBoard = (lineOfDots(beforeDotsCount) + KindOfToken.PacmanRight).collect { it.toString() }.join("")
-		def expectedFinalBoard = (KindOfToken.PacmanRight + lineOfDots(beforeDotsCount - 1) + KindOfToken.Empty).collect { it.toString() }.join("")
+		def initialBoard = lineOfDots(beforeDotsCount) + KindOfToken.PacmanRight
+		def expectedFinalBoard = KindOfToken.PacmanRight + lineOfDots(beforeDotsCount - 1) + KindOfToken.Empty
 
 		when:
-		def boardAfterMove = tick(initialBoard, pacmanTokenFacingRight)
+		def boardAfterMove = tick(initialBoard, KindOfToken.PacmanRight)
 
 		then:
-		boardAfterMove == expectedFinalBoard
+		boardAfterMove.join("") == expectedFinalBoard.join("")
 
 		where:
 		beforeDotsCount << (1..100)
@@ -96,51 +97,62 @@ class PacmanSpec extends Specification {
 	}
 
 	def tick(final board, final pacmanToken) {
-		def beforeAndAfter = board.split(pacmanToken)
-		def before = beforeAndAfter[0]
-		def after = beforeAndAfter.size() == 2 ? beforeAndAfter[1] : ""
+		def before = beforeToken(board, pacmanToken)
+		def after = afterToken(board, pacmanToken)
 
-		def (newBefore, newAfter) = computeNewBeforeAndNewAfter(after, before, pacmanToken)
+		def (newBefore, newAfter) = computeNewBeforeAndNewAfter(before, after, pacmanToken)
 
-		return [newBefore, pacmanToken, newAfter].join("")
+		return newBefore + pacmanToken + newAfter
 	}
 
-	private computeNewBeforeAndNewAfter(after, before, pacmanToken) {
-		def pacmanAttemptsToMoveBeyondTheEndOfTheLine = (pacmanToken == pacmanTokenFacingRight && after.isEmpty())
+	def beforeToken(line, token){
+		def tokenIndex = line.findIndexOf { it == token }
+		def beforeSubLineTokenCount = tokenIndex
+		return line.take(beforeSubLineTokenCount)
+	}
+
+	def afterToken(line, token){
+		def tokenIndex = line.findIndexOf { it == token }
+		def afterSubLineTokenCount = line.size() - tokenIndex - 1
+		return line.takeRight(afterSubLineTokenCount)
+	}
+
+	private computeNewBeforeAndNewAfter(before, after, pacmanToken) {
+		def pacmanAttemptsToMoveBeyondTheEndOfTheLine = (pacmanToken == KindOfToken.PacmanRight && after.isEmpty())
 		if (pacmanAttemptsToMoveBeyondTheEndOfTheLine) {
 			return new Tuple2(emptyPartialLine, emptySpaceAfter(minusFirst(before)))
 		}
 
-		def pacmanAttemptsToMoveRight = (pacmanToken == pacmanTokenFacingRight && !after.isEmpty())
+		def pacmanAttemptsToMoveRight = (pacmanToken == KindOfToken.PacmanRight && !after.isEmpty())
 		if (pacmanAttemptsToMoveRight) {
 			return new Tuple2(emptySpaceAfter(before), minusFirst(after))
 		}
 
-		def pacmanAttemptsToMoveBeforeTheBeginningOfTheLine = (pacmanToken == pacmanTokenFacingLeft && before.isEmpty())
+		def pacmanAttemptsToMoveBeforeTheBeginningOfTheLine = (pacmanToken == KindOfToken.PacmanLeft && before.isEmpty())
 		if (pacmanAttemptsToMoveBeforeTheBeginningOfTheLine) {
 			return new Tuple2(emptySpaceAfter(before) + minusLast(after), emptyPartialLine)
 		}
 
-		def pacmanAttemptsToMoveLeft = (pacmanToken == pacmanTokenFacingLeft && !before.isEmpty())
+		def pacmanAttemptsToMoveLeft = (pacmanToken == KindOfToken.PacmanLeft && !before.isEmpty())
 		if (pacmanAttemptsToMoveLeft) {
 			return new Tuple2(minusLast(before), emptySpaceBefore(after))
 		}
-		return ["", ""]
+		return [[], []]
 	}
 
 	def emptySpaceAfter(final partialLine) {
-		partialLine + emptySpace
+		partialLine + KindOfToken.Empty
 	}
 
 	def emptySpaceBefore(final partialLine) {
-		emptySpace + partialLine
+		KindOfToken.Empty + partialLine
 	}
 
 	def minusLast(final def partialLine) {
-		partialLine.substring(0, partialLine.size() - 1)
+		partialLine.take(partialLine.size() - 1)
 	}
 
 	def minusFirst(final def partialLine) {
-		partialLine.substring(1)
+		partialLine.takeRight(partialLine.size() - 1)
 	}
 }
