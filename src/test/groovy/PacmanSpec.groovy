@@ -36,7 +36,7 @@ class PacmanSpec extends Specification {
 		def expectedFinalBoard = lineOfDots(beforeDotsCount) + KindOfToken.Empty + KindOfToken.PacmanRight + lineOfDots(afterDotsCount - 1)
 
 		when: "tick"
-		def boardAfterMove = tick(initialBoard, KindOfToken.PacmanRight)
+		def boardAfterMove = tick(initialBoard)
 
 		then: "the final board is"
 		boardAfterMove.join("") == expectedFinalBoard.join("")
@@ -52,7 +52,7 @@ class PacmanSpec extends Specification {
 		def expectedFinalBoard = lineOfDots(beforeDotsCount - 1) + KindOfToken.PacmanLeft + KindOfToken.Empty + lineOfDots(afterDotsCount)
 
 		when: "tick"
-		def boardAfterMove = tick(initialBoard, KindOfToken.PacmanLeft)
+		def boardAfterMove = tick(initialBoard)
 
 		then: "the final board is"
 		boardAfterMove.join("") == expectedFinalBoard.join("")
@@ -68,7 +68,7 @@ class PacmanSpec extends Specification {
 		def expectedFinalBoard = KindOfToken.Empty + lineOfDots(afterDotsCount - 1) + KindOfToken.PacmanLeft
 
 		when:
-		def boardAfterMove = tick(initialBoard, KindOfToken.PacmanLeft)
+		def boardAfterMove = tick(initialBoard)
 
 		then:
 		boardAfterMove.join("") == expectedFinalBoard.join("")
@@ -83,7 +83,7 @@ class PacmanSpec extends Specification {
 		def expectedFinalBoard = KindOfToken.PacmanRight + lineOfDots(beforeDotsCount - 1) + KindOfToken.Empty
 
 		when:
-		def boardAfterMove = tick(initialBoard, KindOfToken.PacmanRight)
+		def boardAfterMove = tick(initialBoard)
 
 		then:
 		boardAfterMove.join("") == expectedFinalBoard.join("")
@@ -96,13 +96,15 @@ class PacmanSpec extends Specification {
 		(1..<dotsCount + 1).collect { KindOfToken.Dot }
 	}
 
-	def tick(final board, final pacmanToken) {
-		def before = beforeToken(board, pacmanToken)
-		def after = afterToken(board, pacmanToken)
+	def tick(final board) {
+		def possiblePacmanTokens = [KindOfToken.PacmanLeft, KindOfToken.PacmanRight]
+		def existingToken = board.intersect(possiblePacmanTokens).first()
+		def before = beforeToken(board, existingToken)
+		def after = afterToken(board, existingToken)
 
-		def result = computeNewBeforeAndNewAfter(before, after, pacmanToken)
+		def result = computeNewBeforeAndNewAfter(before, after, existingToken)
 
-		return result.before + pacmanToken + result.after
+		return result.before + existingToken + result.after
 	}
 
 	def beforeToken(line, token) {
