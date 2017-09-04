@@ -1,6 +1,5 @@
 import groovy.util.logging.Log4j
 import spock.genesis.Gen
-import spock.lang.Ignore
 import spock.lang.Specification
 
 @Log4j
@@ -65,11 +64,10 @@ class PacmanSpec extends Specification {
 		beforeDotsCount << (1..100)
 	}
 
-	@Ignore
 	def "pacman eats the next dot down when it has dots down and is oriented down"() {
 		given: "a line of dots with pacman in the middle oriented towards right"
-		def initialBoard = columnOfDots(beforeDotsCount) + KindOfToken.PacmanDown + columnOfDots(afterDotsCount)
-		def expectedFinalBoard = columnOfDots(beforeDotsCount) + KindOfToken.Empty + KindOfToken.PacmanDown + columnOfDots(afterDotsCount - 1)
+		def initialBoard = columnOfDots(beforeDotsCount) + [[KindOfToken.PacmanDown]] + columnOfDots(afterDotsCount)
+		def expectedFinalBoard = columnOfDots(beforeDotsCount) + [[KindOfToken.Empty]] + [[KindOfToken.PacmanDown]] + columnOfDots(afterDotsCount - 1)
 
 		when: "tick"
 		def boardAfterMove = tick(initialBoard)
@@ -78,8 +76,10 @@ class PacmanSpec extends Specification {
 		boardAfterMove == expectedFinalBoard
 
 		where: "dots count"
-		beforeDotsCount << (0..<50)
-		afterDotsCount << Gen.integer(1..100).take(50)
+		beforeDotsCount = 1
+		afterDotsCount = 1
+//		beforeDotsCount << (0..<50)
+//		afterDotsCount << Gen.integer(1..100).take(50)
 	}
 
 
@@ -118,18 +118,34 @@ class PacmanSpec extends Specification {
 		(1..<dotsCount + 1).collect { KindOfToken.Dot }
 	}
 
-	static columnOfDots(final int dotsCount){
-		(1..<dotsCount + 1).collect{ [KindOfToken.Dot]}
+	static columnOfDots(final int dotsCount) {
+		(1..<dotsCount + 1).collect { [KindOfToken.Dot] }
 	}
 
 	def tick(final board) {
+		def newBoard = null
+
 		def line = board.first()
-		def possiblePacmanTokens = [KindOfToken.PacmanLeft, KindOfToken.PacmanRight]
-		def existingToken = line.intersect(possiblePacmanTokens).first()
+		def possiblePacmanTokensForLine = [KindOfToken.PacmanLeft, KindOfToken.PacmanRight]
+		def intersection = line.intersect(possiblePacmanTokensForLine)
+		def existingToken = intersection ? intersection.first() : null
+		if (existingToken){
+			def newLine = computeNewLine(line, existingToken)
+			newBoard = [newLine]
+		}
 
-		def newLine = computeNewLine(line, existingToken)
+		if (!existingToken) {
+			def column = board.collect{it.first()}
+			def possiblePacmanTokensForColumn = [KindOfToken.PacmanDown]
+			def columnIntersection = column.intersect(possiblePacmanTokensForColumn)
+			existingToken = columnIntersection ? columnIntersection.first() : null
 
-		def newBoard = [newLine]
+			def newColumn = computeNewColumn(column, KindOfToken.PacmanDown)
+			newBoard = newColumn.collect{[it]}
+		}
+
+		assert existingToken
+
 		return newBoard
 	}
 
@@ -138,6 +154,13 @@ class PacmanSpec extends Specification {
 		def after = afterToken(line, existingToken)
 		def result = computeNewBeforeAndNewAfter(before, after, existingToken)
 		return result.before + existingToken + result.after
+	}
+
+	private computeNewColumn(column, existingToken) {
+		def before = beforeToken(column, existingToken)
+		def after = afterToken(column, existingToken)
+		def result = computeNewBeforeAndNewAfter(before, after, existingToken)
+		return result.before + [existingToken] + result.after
 	}
 
 	def beforeToken(line, token) {
@@ -154,10 +177,14 @@ class PacmanSpec extends Specification {
 
 	private computeNewBeforeAndNewAfter(before, after, pacmanToken) {
 		if (pacmanToken == KindOfToken.PacmanLeft) {
-			return computeNewBeforeAndNewAfterOnMoveLeft(before , after)
+			return computeNewBeforeAndNewAfterOnMoveLeft(before, after)
 		}
 
 		if (pacmanToken == KindOfToken.PacmanRight) {
+			return computeNewBeforeAndNewAfterOnMoveRight(before, after)
+		}
+
+		if (pacmanToken == KindOfToken.PacmanDown){
 			return computeNewBeforeAndNewAfterOnMoveRight(before, after)
 		}
 		return [[], []]
@@ -170,7 +197,7 @@ class PacmanSpec extends Specification {
 		       [before: emptySpaceAfter(before), after: minusFirst(after)]
 	}
 
-	def computeNewBeforeAndNewAfterOnMoveLeft(before, after){
+	def computeNewBeforeAndNewAfterOnMoveLeft(before, after) {
 		def result = computeNewBeforeAndNewAfterOnMoveRight(after.reverse(), before.reverse())
 		return [before: result.after.reverse(), after: result.before.reverse()]
 	}
