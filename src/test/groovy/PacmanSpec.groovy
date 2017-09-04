@@ -148,7 +148,7 @@ class PacmanSpec extends Specification {
 		def intersection = line.intersect(possiblePacmanTokensForLine)
 		def existingToken = intersection ? intersection.first() : null
 
-		if (existingToken){
+		if (existingToken) {
 			def before = beforeToken(line, existingToken)
 			def after = afterToken(line, existingToken)
 			if (existingToken == KindOfToken.PacmanLeft) result = computeNewBeforeAndNewAfterOnMoveLeft(before, after)
@@ -159,7 +159,7 @@ class PacmanSpec extends Specification {
 		}
 
 		if (!existingToken) {
-			def column = board.collect{it.first()}
+			def column = board.collect { it.first() }
 			def possiblePacmanTokensForColumn = [KindOfToken.PacmanDown, KindOfToken.PacmanUp]
 			def columnIntersection = column.intersect(possiblePacmanTokensForColumn)
 			existingToken = columnIntersection ? columnIntersection.first() : null
@@ -170,7 +170,7 @@ class PacmanSpec extends Specification {
 			if (existingToken == KindOfToken.PacmanUp) result = computeNewBeforeAndNewAfterOnMoveLeft(before, after)
 			finalToken = [existingToken]
 			def newColumn = result.before + finalToken + result.after
-			newBoard = newColumn.collect{[it]}
+			newBoard = newColumn.collect { [it] }
 		}
 		return newBoard
 	}
