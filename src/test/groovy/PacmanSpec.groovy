@@ -12,13 +12,21 @@ class PacmanSpec extends Specification {
 	final static dot = "."
 	final static emptyPartialLine = []
 
+	enum DirectionOnAxis {
+		None,
+		Forward,
+		Backward
+	}
+
 	enum KindOfToken {
-		Empty,
-		Dot,
-		PacmanLeft,
-		PacmanRight,
-		PacmanDown,
-		PacmanUp
+		Empty(directionOnAxis: DirectionOnAxis.None),
+		Dot(directionOnAxis: DirectionOnAxis.None),
+		PacmanLeft(directionOnAxis: DirectionOnAxis.Backward),
+		PacmanRight(directionOnAxis: DirectionOnAxis.Forward),
+		PacmanDown(directionOnAxis: DirectionOnAxis.Forward),
+		PacmanUp(directionOnAxis: DirectionOnAxis.Backward)
+
+		def directionOnAxis
 
 		@Override
 		String toString() {
@@ -33,6 +41,15 @@ class PacmanSpec extends Specification {
 
 		def plus(ArrayList collection) {
 			[this] + collection
+		}
+
+		def transpose() {
+			if (this == Empty) return Empty
+			if (this == Dot) return Dot
+			if (this == PacmanLeft) return PacmanDown
+			if (this == PacmanRight) return PacmanUp
+			if (this == PacmanDown) return PacmanLeft
+			if (this == PacmanUp) return PacmanLeft
 		}
 	}
 
@@ -139,40 +156,28 @@ class PacmanSpec extends Specification {
 	}
 
 	def tick(final board) {
-		def newBoard = null
-		def result
-		def finalToken
+		return computeNewBoard(board, [KindOfToken.PacmanLeft, KindOfToken.PacmanRight])
+	}
 
+	def computeNewBoard(board, possiblePacmanTokens) {
 		def line = board.first()
-		def possiblePacmanTokensForLine = [KindOfToken.PacmanLeft, KindOfToken.PacmanRight]
-		def intersection = line.intersect(possiblePacmanTokensForLine)
+		def intersection = line.intersect(possiblePacmanTokens)
 		def existingToken = intersection ? intersection.first() : null
 
 		if (existingToken) {
-			def before = beforeToken(line, existingToken)
-			def after = afterToken(line, existingToken)
-			if (existingToken == KindOfToken.PacmanLeft) result = computeNewBeforeAndNewAfterOnMoveLeft(before, after)
-			if (existingToken == KindOfToken.PacmanRight) result = computeNewBeforeAndNewAfterOnMoveRight(before, after)
-			finalToken = existingToken
-			def newLine = result.before + finalToken + result.after
-			newBoard = [newLine]
+			return [computeLineOrColumnAfterMove(line, existingToken)]
+		} else {
+			return computeNewBoard(board.transpose(), possiblePacmanTokens.collect { it.transpose() }).transpose()
 		}
+	}
 
-		if (!existingToken) {
-			def column = board.collect { it.first() }
-			def possiblePacmanTokensForColumn = [KindOfToken.PacmanDown, KindOfToken.PacmanUp]
-			def columnIntersection = column.intersect(possiblePacmanTokensForColumn)
-			existingToken = columnIntersection ? columnIntersection.first() : null
-
-			def before = beforeToken(column, existingToken)
-			def after = afterToken(column, existingToken)
-			if (existingToken == KindOfToken.PacmanUp) result = computeNewBeforeAndNewAfterOnMoveLeft(before, after)
-			if (existingToken == KindOfToken.PacmanDown) result = computeNewBeforeAndNewAfterOnMoveRight(before, after)
-			finalToken = [existingToken]
-			def newColumn = result.before + finalToken + result.after
-			newBoard = newColumn.collect { [it] }
-		}
-		return newBoard
+	private computeLineOrColumnAfterMove(line, existingToken) {
+		def result
+		def before = beforeToken(line, existingToken)
+		def after = afterToken(line, existingToken)
+		if (existingToken.directionOnAxis == DirectionOnAxis.Backward) result = computeNewBeforeAndNewAfterOnMoveBackwardOnAxis(before, after)
+		if (existingToken.directionOnAxis == DirectionOnAxis.Forward) result = computeNewBeforeAndNewAfterOnMoveForwardOnAxis(before, after)
+		return result.before + [existingToken] + result.after
 	}
 
 	def beforeToken(line, token) {
@@ -187,15 +192,15 @@ class PacmanSpec extends Specification {
 		return line.takeRight(afterSubLineTokenCount)
 	}
 
-	def computeNewBeforeAndNewAfterOnMoveRight(before, after) {
+	def computeNewBeforeAndNewAfterOnMoveForwardOnAxis(before, after) {
 		def pacmanAttemptsToMoveBeyondTheEndOfTheLine = (after.isEmpty())
 		return pacmanAttemptsToMoveBeyondTheEndOfTheLine ?
 		       [before: emptyPartialLine, after: emptySpaceAfter(minusFirst(before))] :
 		       [before: emptySpaceAfter(before), after: minusFirst(after)]
 	}
 
-	def computeNewBeforeAndNewAfterOnMoveLeft(before, after) {
-		def result = computeNewBeforeAndNewAfterOnMoveRight(after.reverse(), before.reverse())
+	def computeNewBeforeAndNewAfterOnMoveBackwardOnAxis(before, after) {
+		def result = computeNewBeforeAndNewAfterOnMoveForwardOnAxis(after.reverse(), before.reverse())
 		return [before: result.after.reverse(), after: result.before.reverse()]
 	}
 
