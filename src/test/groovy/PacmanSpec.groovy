@@ -172,12 +172,23 @@ class PacmanSpec extends Specification {
 	}
 
 	private computeLineOrColumnAfterMove(line, existingToken) {
-		def result
-		def before = beforeToken(line, existingToken)
-		def after = afterToken(line, existingToken)
-		if (existingToken.directionOnAxis == DirectionOnAxis.Backward) result = computeNewBeforeAndNewAfterOnMoveBackwardOnAxis(before, after)
-		if (existingToken.directionOnAxis == DirectionOnAxis.Forward) result = computeNewBeforeAndNewAfterOnMoveForwardOnAxis(before, after)
+		def beforeAndAfter = [before: beforeToken(line, existingToken), after: afterToken(line, existingToken)]
+		def result = moveOnAxis(existingToken, beforeAndAfter)
 		return result.before + [existingToken] + result.after
+	}
+
+	private moveOnAxis(existingToken, beforeAndAfter) {
+		switch (existingToken.directionOnAxis){
+			case DirectionOnAxis.Forward:
+				return computeNewBeforeAndNewAfterOnMoveForwardOnAxis(beforeAndAfter)
+
+			case DirectionOnAxis.Backward:
+				return computeNewBeforeAndNewAfterOnMoveBackwardOnAxis(beforeAndAfter)
+
+			case DirectionOnAxis.None:
+				assert false
+				return beforeAndAfter
+		}
 	}
 
 	def beforeToken(line, token) {
@@ -192,16 +203,19 @@ class PacmanSpec extends Specification {
 		return line.takeRight(afterSubLineTokenCount)
 	}
 
-	def computeNewBeforeAndNewAfterOnMoveForwardOnAxis(before, after) {
-		def pacmanAttemptsToMoveBeyondTheEndOfTheLine = (after.isEmpty())
+	def computeNewBeforeAndNewAfterOnMoveForwardOnAxis(beforeAndAfter) {
+		def pacmanAttemptsToMoveBeyondTheEndOfTheLine = (beforeAndAfter.after.isEmpty())
 		return pacmanAttemptsToMoveBeyondTheEndOfTheLine ?
-		       [before: emptyPartialLine, after: emptySpaceAfter(minusFirst(before))] :
-		       [before: emptySpaceAfter(before), after: minusFirst(after)]
+		       [before: emptyPartialLine, after: emptySpaceAfter(minusFirst(beforeAndAfter.before))] :
+		       [before: emptySpaceAfter(beforeAndAfter.before), after: minusFirst(beforeAndAfter.after)]
 	}
 
-	def computeNewBeforeAndNewAfterOnMoveBackwardOnAxis(before, after) {
-		def result = computeNewBeforeAndNewAfterOnMoveForwardOnAxis(after.reverse(), before.reverse())
-		return [before: result.after.reverse(), after: result.before.reverse()]
+	def computeNewBeforeAndNewAfterOnMoveBackwardOnAxis(beforeAndAfter) {
+		return reverseBeforeAndAfterMap(computeNewBeforeAndNewAfterOnMoveForwardOnAxis(reverseBeforeAndAfterMap(beforeAndAfter)))
+	}
+
+	def reverseBeforeAndAfterMap(beforeAndAfter){
+		return [before: beforeAndAfter.after.reverse(), after: beforeAndAfter.before.reverse()]
 	}
 
 	def emptySpaceAfter(final partialLine) {
