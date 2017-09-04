@@ -166,8 +166,8 @@ class PacmanSpec extends Specification {
 
 			def before = beforeToken(column, existingToken)
 			def after = afterToken(column, existingToken)
-			if (existingToken == KindOfToken.PacmanDown) result = computeNewBeforeAndNewAfterOnMoveRight(before, after)
 			if (existingToken == KindOfToken.PacmanUp) result = computeNewBeforeAndNewAfterOnMoveLeft(before, after)
+			if (existingToken == KindOfToken.PacmanDown) result = computeNewBeforeAndNewAfterOnMoveRight(before, after)
 			finalToken = [existingToken]
 			def newColumn = result.before + finalToken + result.after
 			newBoard = newColumn.collect { [it] }
