@@ -156,7 +156,10 @@ class PacmanSpec extends Specification {
 	}
 
 	def tick(final board) {
-		return computeNewBoard(board, [KindOfToken.PacmanLeft, KindOfToken.PacmanRight])
+		def linePacmanTokens = [KindOfToken.PacmanLeft, KindOfToken.PacmanRight]
+		def lineResult = computeNewBoard(board, linePacmanTokens)
+		if (lineResult) return lineResult
+		else computeNewBoard(board.transpose(), linePacmanTokens.collect { it.transpose() }).transpose()
 	}
 
 	def computeNewBoard(board, possiblePacmanTokens) {
@@ -167,7 +170,7 @@ class PacmanSpec extends Specification {
 		if (existingToken) {
 			return [computeLineOrColumnAfterMove(line, existingToken)]
 		} else {
-			return computeNewBoard(board.transpose(), possiblePacmanTokens.collect { it.transpose() }).transpose()
+			return null
 		}
 	}
 
@@ -178,7 +181,7 @@ class PacmanSpec extends Specification {
 	}
 
 	private moveOnAxis(existingToken, beforeAndAfter) {
-		switch (existingToken.directionOnAxis){
+		switch (existingToken.directionOnAxis) {
 			case DirectionOnAxis.Forward:
 				return computeNewBeforeAndNewAfterOnMoveForwardOnAxis(beforeAndAfter)
 
@@ -214,7 +217,7 @@ class PacmanSpec extends Specification {
 		return reverseBeforeAndAfterMap(computeNewBeforeAndNewAfterOnMoveForwardOnAxis(reverseBeforeAndAfterMap(beforeAndAfter)))
 	}
 
-	def reverseBeforeAndAfterMap(beforeAndAfter){
+	def reverseBeforeAndAfterMap(beforeAndAfter) {
 		return [before: beforeAndAfter.after.reverse(), after: beforeAndAfter.before.reverse()]
 	}
 
