@@ -18,15 +18,22 @@ class PacmanSpec extends Specification {
 		Backward
 	}
 
+	enum Axis {
+		None,
+		Horizontal,
+		Vertical
+	}
+
 	enum KindOfToken {
-		Empty(directionOnAxis: DirectionOnAxis.None),
-		Dot(directionOnAxis: DirectionOnAxis.None),
-		PacmanLeft(directionOnAxis: DirectionOnAxis.Backward),
-		PacmanRight(directionOnAxis: DirectionOnAxis.Forward),
-		PacmanDown(directionOnAxis: DirectionOnAxis.Forward),
-		PacmanUp(directionOnAxis: DirectionOnAxis.Backward)
+		Empty(directionOnAxis: DirectionOnAxis.None, axis: Axis.None),
+		Dot(directionOnAxis: DirectionOnAxis.None, axis: Axis.None),
+		PacmanLeft(directionOnAxis: DirectionOnAxis.Backward, axis: Axis.Horizontal),
+		PacmanRight(directionOnAxis: DirectionOnAxis.Forward, axis: Axis.Horizontal),
+		PacmanDown(directionOnAxis: DirectionOnAxis.Forward, axis: Axis.Vertical),
+		PacmanUp(directionOnAxis: DirectionOnAxis.Backward, axis: Axis.Vertical)
 
 		def directionOnAxis
+		def axis
 
 		@Override
 		String toString() {
@@ -156,10 +163,27 @@ class PacmanSpec extends Specification {
 	}
 
 	def tick(final board) {
-		def linePacmanTokens = [KindOfToken.PacmanLeft, KindOfToken.PacmanRight]
-		def lineResult = computeNewBoard(board, linePacmanTokens)
-		if (lineResult) return lineResult
-		else computeNewBoard(board.transpose(), linePacmanTokens.collect { it.transpose() }).transpose()
+		def axes = Axis.values() - Axis.None
+		def currentAxis = Axis.Horizontal
+
+		axes.findResult { nextAxis ->
+			def pacmanTokens = KindOfToken.values().findAll { it.axis == nextAxis }
+			return rotateBoardOnAxis(
+					computeNewBoard(
+							rotateBoardOnAxis(board, currentAxis, nextAxis),
+							pacmanTokens
+					),
+					nextAxis,
+					currentAxis
+			)
+		}
+	}
+
+	def rotateBoardOnAxis(board, startFromAxis, goToAxis) {
+		return (
+				(startFromAxis == Axis.Vertical && goToAxis == Axis.Horizontal) ||
+				(startFromAxis == Axis.Horizontal && goToAxis == Axis.Vertical)
+		) ? board.transpose() : board
 	}
 
 	def computeNewBoard(board, possiblePacmanTokens) {
@@ -173,6 +197,7 @@ class PacmanSpec extends Specification {
 			return null
 		}
 	}
+
 
 	private computeLineOrColumnAfterMove(line, existingToken) {
 		def beforeAndAfter = [before: beforeToken(line, existingToken), after: afterToken(line, existingToken)]
