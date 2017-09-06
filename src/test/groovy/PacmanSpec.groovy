@@ -163,27 +163,30 @@ class PacmanSpec extends Specification {
 	}
 
 	def tick(final board) {
-		def axes = Axis.values() - Axis.None
-		def currentAxis = Axis.Horizontal
-
-		axes.findResult { nextAxis ->
-			def pacmanTokens = KindOfToken.values().findAll { it.axis == nextAxis }
-			return rotateBoardOnAxis(
-					computeNewBoard(
-							rotateBoardOnAxis(board, currentAxis, nextAxis),
-							pacmanTokens
-					),
-					nextAxis,
-					currentAxis
-			)
+		return Axis.values().findResult { nextAxis ->
+			computeNextBoardOnAxis(board, Axis.Horizontal, nextAxis)
 		}
+	}
+
+	private computeNextBoardOnAxis(board, currentAxis, nextAxis) {
+		if (nextAxis == Axis.None) return null
+
+		def pacmanTokensForAxis = KindOfToken.values().findAll { it.axis == nextAxis }
+		return rotateBoardOnAxis(
+				computeNewBoard(
+						rotateBoardOnAxis(board, currentAxis, nextAxis),
+						pacmanTokensForAxis
+				),
+				nextAxis,
+				currentAxis
+		)
 	}
 
 	def rotateBoardOnAxis(board, startFromAxis, goToAxis) {
 		return (
-				(startFromAxis == Axis.Vertical && goToAxis == Axis.Horizontal) ||
-				(startFromAxis == Axis.Horizontal && goToAxis == Axis.Vertical)
-		) ? board.transpose() : board
+				       (startFromAxis == Axis.Vertical && goToAxis == Axis.Horizontal) ||
+				       (startFromAxis == Axis.Horizontal && goToAxis == Axis.Vertical)
+		       ) ? board.transpose() : board
 	}
 
 	def computeNewBoard(board, possiblePacmanTokens) {
@@ -197,7 +200,6 @@ class PacmanSpec extends Specification {
 			return null
 		}
 	}
-
 
 	private computeLineOrColumnAfterMove(line, existingToken) {
 		def beforeAndAfter = [before: beforeToken(line, existingToken), after: afterToken(line, existingToken)]
