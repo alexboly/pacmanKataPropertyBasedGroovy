@@ -183,10 +183,9 @@ class PacmanSpec extends Specification {
 	}
 
 	def rotateBoardOnAxis(board, startFromAxis, goToAxis) {
-		return (
-				       (startFromAxis == Axis.Vertical && goToAxis == Axis.Horizontal) ||
-				       (startFromAxis == Axis.Horizontal && goToAxis == Axis.Vertical)
-		       ) ? board.transpose() : board
+		def needsToRotate = (startFromAxis == Axis.Vertical && goToAxis == Axis.Horizontal) ||
+		                    (startFromAxis == Axis.Horizontal && goToAxis == Axis.Vertical)
+		return needsToRotate ? board.transpose() : board
 	}
 
 	def computeNewBoard(board, possiblePacmanTokens) {
