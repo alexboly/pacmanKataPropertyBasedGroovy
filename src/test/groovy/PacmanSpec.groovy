@@ -25,15 +25,16 @@ class PacmanSpec extends Specification {
 	}
 
 	enum KindOfToken {
-		Empty(directionOnAxis: DirectionOnAxis.None, axis: Axis.None),
-		Dot(directionOnAxis: DirectionOnAxis.None, axis: Axis.None),
-		PacmanLeft(directionOnAxis: DirectionOnAxis.Backward, axis: Axis.Horizontal),
-		PacmanRight(directionOnAxis: DirectionOnAxis.Forward, axis: Axis.Horizontal),
-		PacmanDown(directionOnAxis: DirectionOnAxis.Forward, axis: Axis.Vertical),
-		PacmanUp(directionOnAxis: DirectionOnAxis.Backward, axis: Axis.Vertical)
+		Empty,
+		Dot,
+		PacmanLeft(directionOnAxis: DirectionOnAxis.Backward, axis: Axis.Horizontal, isMovable: true),
+		PacmanRight(directionOnAxis: DirectionOnAxis.Forward, axis: Axis.Horizontal, isMovable: true),
+		PacmanDown(directionOnAxis: DirectionOnAxis.Forward, axis: Axis.Vertical, isMovable: true),
+		PacmanUp(directionOnAxis: DirectionOnAxis.Backward, axis: Axis.Vertical, isMovable: true)
 
-		def directionOnAxis
-		def axis
+		def directionOnAxis = DirectionOnAxis.None
+		def axis = Axis.None
+		def isMovable = false
 
 		@Override
 		String toString() {
@@ -169,13 +170,11 @@ class PacmanSpec extends Specification {
 	}
 
 	private computeNextBoardOnAxis(board, currentAxis, nextAxis) {
-		if (nextAxis == Axis.None) return null
-
-		def pacmanTokensForAxis = KindOfToken.values().findAll { it.axis == nextAxis }
+		def movableTokensForAxis = KindOfToken.values().findAll { it.axis == nextAxis && it.isMovable }
 		return rotateBoardOnAxis(
 				computeNewBoard(
 						rotateBoardOnAxis(board, currentAxis, nextAxis),
-						pacmanTokensForAxis
+						movableTokensForAxis
 				),
 				nextAxis,
 				currentAxis
@@ -185,19 +184,16 @@ class PacmanSpec extends Specification {
 	def rotateBoardOnAxis(board, startFromAxis, goToAxis) {
 		def needsToRotate = (startFromAxis == Axis.Vertical && goToAxis == Axis.Horizontal) ||
 		                    (startFromAxis == Axis.Horizontal && goToAxis == Axis.Vertical)
+
 		return needsToRotate ? board.transpose() : board
 	}
 
-	def computeNewBoard(board, possiblePacmanTokens) {
+	def computeNewBoard(board, movableTokens) {
 		def line = board.first()
-		def intersection = line.intersect(possiblePacmanTokens)
+		def intersection = line.intersect(movableTokens)
 		def existingToken = intersection ? intersection.first() : null
 
-		if (existingToken) {
-			return [computeLineOrColumnAfterMove(line, existingToken)]
-		} else {
-			return null
-		}
+		return existingToken ? [computeLineOrColumnAfterMove(line, existingToken)] : null
 	}
 
 	private computeLineOrColumnAfterMove(line, existingToken) {
@@ -215,7 +211,6 @@ class PacmanSpec extends Specification {
 				return computeNewBeforeAndNewAfterOnMoveBackwardOnAxis(beforeAndAfter)
 
 			case DirectionOnAxis.None:
-				assert false
 				return beforeAndAfter
 		}
 	}
