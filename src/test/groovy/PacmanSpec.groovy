@@ -245,7 +245,7 @@ class PacmanSpec extends Specification {
 			else return null
 		}
 
-g		return results ? results.first() : null
+		return results ? results.first() : null
 	}
 
 	private computeLineOrColumnAfterMove(line, existingToken) {
