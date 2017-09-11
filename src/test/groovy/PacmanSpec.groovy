@@ -63,14 +63,10 @@ class PacmanSpec extends Specification {
 
 	def "pacman eats the next dot on the right when it has dots on the right and is oriented towards right"() {
 		given: "a line of dots with pacman in the middle oriented towards right"
-		def initialBoard = [
-				lineOfDots(beforeDotsCount) + KindOfToken.PacmanRight + lineOfDots(afterDotsCount),
-				lineOfDots(totalDotsCount)
-		]
-		def expectedFinalBoard = [
-				lineOfDots(beforeDotsCount) + KindOfToken.Empty + KindOfToken.PacmanRight + lineOfDots(afterDotsCount - 1),
-				lineOfDots(totalDotsCount)
-		]
+		def lineWithPacman = lineOfDots(beforeDotsCount) + KindOfToken.PacmanRight + lineOfDots(afterDotsCount)
+		def expectedLineWithPacman = lineOfDots(beforeDotsCount) + KindOfToken.Empty + KindOfToken.PacmanRight + lineOfDots(afterDotsCount - 1)
+		def initialBoard = makeBoard(lineWithPacman)
+		def expectedFinalBoard = makeBoard(expectedLineWithPacman)
 
 		when: "tick"
 		def boardAfterMove = tick(initialBoard)
@@ -82,12 +78,18 @@ class PacmanSpec extends Specification {
 		beforeDotsCount << (0..<50)
 		afterDotsCount << Gen.integer(1..100).take(50)
 		totalDotsCount = beforeDotsCount + afterDotsCount + 1
+		beforeLineCount << (0..<50)
+		afterLineCount << (0..<50)
+		makeBoard = this.&makeBoardWithLineWithPacman.curry(beforeLineCount).rcurry(afterLineCount)
 	}
 
 	def "pacman eats the first dot when all the way to the right and oriented towards right"() {
 		given:
-		def initialBoard = [lineOfDots(beforeDotsCount) + KindOfToken.PacmanRight]
-		def expectedFinalBoard = [KindOfToken.PacmanRight + lineOfDots(beforeDotsCount - 1) + KindOfToken.Empty]
+		def lineWithPacman = lineOfDots(beforeDotsCount) + KindOfToken.PacmanRight
+		def expectedLineWithPacman = KindOfToken.PacmanRight + lineOfDots(beforeDotsCount - 1) + KindOfToken.Empty
+
+		def initialBoard = makeBoard(lineWithPacman)
+		def expectedFinalBoard = makeBoard(expectedLineWithPacman)
 
 		when:
 		def boardAfterMove = tick(initialBoard)
@@ -97,12 +99,18 @@ class PacmanSpec extends Specification {
 
 		where:
 		beforeDotsCount << (1..100)
+		totalDotsCount = beforeDotsCount + 1
+		beforeLineCount << (0..<100)
+		afterLineCount << (0..<100)
+		makeBoard = this.&makeBoardWithLineWithPacman.curry(beforeLineCount).rcurry(afterLineCount)
 	}
 
 	def "pacman eats the next dot down when it has dots down and is oriented down"() {
 		given: "a line of dots with pacman in the middle oriented towards right"
-		def initialBoard = columnOfDots(beforeDotsCount) + [[KindOfToken.PacmanDown]] + columnOfDots(afterDotsCount)
-		def expectedFinalBoard = columnOfDots(beforeDotsCount) + [[KindOfToken.Empty]] + [[KindOfToken.PacmanDown]] + columnOfDots(afterDotsCount - 1)
+		def pacmanColumn = columnOfDots(beforeDotsCount) + [[KindOfToken.PacmanDown]] + columnOfDots(afterDotsCount)
+		def initialBoard = makeBoard(pacmanColumn)
+		def expectedPacmanColumn = columnOfDots(beforeDotsCount) + [[KindOfToken.Empty]] + [[KindOfToken.PacmanDown]] + columnOfDots(afterDotsCount - 1)
+		def expectedFinalBoard = makeBoard(expectedPacmanColumn)
 
 		when: "tick"
 		def boardAfterMove = tick(initialBoard)
@@ -113,12 +121,18 @@ class PacmanSpec extends Specification {
 		where: "dots count"
 		beforeDotsCount << (0..<50)
 		afterDotsCount << Gen.integer(1..100).take(50)
+		totalDotsCount = beforeDotsCount + afterDotsCount + 1
+		beforeColumnCount << (0..<50)
+		afterColumnCount << (0..<50)
+		makeBoard = this.&makeBoardWithColumnWithPacman.curry(beforeColumnCount).rcurry(afterColumnCount)
 	}
 
 	def "pacman eats the next dot up when it has dots up and is oriented up"() {
 		given: "a line of dots with pacman in the middle oriented towards up"
-		def initialBoard = columnOfDots(beforeDotsCount) + [[KindOfToken.PacmanUp]] + columnOfDots(afterDotsCount)
-		def expectedFinalBoard = columnOfDots(beforeDotsCount - 1) + [[KindOfToken.PacmanUp]] + [[KindOfToken.Empty]] + columnOfDots(afterDotsCount)
+		def pacmanColumn = columnOfDots(beforeDotsCount) + [[KindOfToken.PacmanUp]] + columnOfDots(afterDotsCount)
+		def initialBoard = makeBoard(pacmanColumn)
+		def expectedPacmanColumn = columnOfDots(beforeDotsCount - 1) + [[KindOfToken.PacmanUp]] + [[KindOfToken.Empty]] + columnOfDots(afterDotsCount)
+		def expectedFinalBoard = makeBoard(expectedPacmanColumn)
 
 		when: "tick"
 		def boardAfterMove = tick(initialBoard)
@@ -129,6 +143,9 @@ class PacmanSpec extends Specification {
 		where: "dots count"
 		beforeDotsCount << (1..50)
 		afterDotsCount << Gen.integer(1..100).take(50)
+		beforeColumnCount << (0..<50)
+		afterColumnCount << (0..<50)
+		makeBoard = this.&makeBoardWithColumnWithPacman.curry(beforeColumnCount).rcurry(afterColumnCount)
 	}
 
 	def "pacman eats the next dot on the left when it has dots on the left and it's oriented towards left"() {
@@ -162,8 +179,33 @@ class PacmanSpec extends Specification {
 		afterDotsCount << (1..100)
 	}
 
+	private static makeBoardWithLineWithPacman(final beforeLineCount, final lineWithPacman, final afterLineCount) {
+		def totalDotsCount = lineWithPacman.size()
+		return linesOfDots(beforeLineCount, totalDotsCount) +
+		[lineWithPacman] +
+		linesOfDots(afterLineCount, totalDotsCount)
+
+	}
+
+	private static makeBoardWithColumnWithPacman(final int beforeColumnCount, final pacmanColumn, final int afterColumnCount) {
+		def totalDotsCount = pacmanColumn.size()
+		return (
+				linesOfDots(beforeColumnCount, totalDotsCount) +
+				pacmanColumn.transpose() +
+				linesOfDots(afterColumnCount, totalDotsCount)
+		).transpose()
+	}
+
+	private static linesOfDots(final int linesCount, final int dotsCount) {
+		(1..<linesCount + 1).collect { lineOfDots(dotsCount) }
+	}
+
 	private static lineOfDots(final int dotsCount) {
 		(1..<dotsCount + 1).collect { KindOfToken.Dot }
+	}
+
+	static columnsOfDots(final int columnsCount, final int dotsCount) {
+		(1..<columnsCount).collect { columnOfDots(dotsCount) }
 	}
 
 	static columnOfDots(final int dotsCount) {
@@ -196,21 +238,14 @@ class PacmanSpec extends Specification {
 	}
 
 	def computeNewBoard(board, movableTokens) {
-		if(board.size() == 1) {
-			def line = board.first()
+		def results = board.indexed().findResults { index, line ->
 			def intersection = line.intersect(movableTokens)
 			def existingToken = intersection ? intersection.first() : null
-			return existingToken ? [computeLineOrColumnAfterMove(line, existingToken)] : null
-		}
-
-		if(board.size() == 2){
-			int index = 0
-			def line = board[index]
-			def intersection = line.intersect(movableTokens)
-			def existingToken = intersection ? intersection.first() : null
-			if(existingToken) return beforeIndex(index, board) + [computeLineOrColumnAfterMove(line, existingToken)] + afterIndex(board, index)
+			if (existingToken) return beforeIndex(index, board) + [computeLineOrColumnAfterMove(line, existingToken)] + afterIndex(board, index)
 			else return null
 		}
+
+g		return results ? results.first() : null
 	}
 
 	private computeLineOrColumnAfterMove(line, existingToken) {
