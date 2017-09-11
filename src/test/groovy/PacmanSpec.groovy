@@ -182,9 +182,8 @@ class PacmanSpec extends Specification {
 	private static makeBoardWithLineWithPacman(final beforeLineCount, final lineWithPacman, final afterLineCount) {
 		def totalDotsCount = lineWithPacman.size()
 		return linesOfDots(beforeLineCount, totalDotsCount) +
-		[lineWithPacman] +
-		linesOfDots(afterLineCount, totalDotsCount)
-
+		       [lineWithPacman] +
+		       linesOfDots(afterLineCount, totalDotsCount)
 	}
 
 	private static makeBoardWithColumnWithPacman(final int beforeColumnCount, final pacmanColumn, final int afterColumnCount) {
@@ -204,13 +203,11 @@ class PacmanSpec extends Specification {
 		(1..<dotsCount + 1).collect { KindOfToken.Dot }
 	}
 
-	static columnsOfDots(final int columnsCount, final int dotsCount) {
-		(1..<columnsCount).collect { columnOfDots(dotsCount) }
-	}
-
 	static columnOfDots(final int dotsCount) {
 		(1..<dotsCount + 1).collect { [KindOfToken.Dot] }
 	}
+
+	// Production code starts
 
 	def tick(final board) {
 		return Axis.values().findResult { nextAxis ->
@@ -218,43 +215,49 @@ class PacmanSpec extends Specification {
 		}
 	}
 
-	private computeNextBoardOnAxis(board, currentAxis, nextAxis) {
+	private computeNextBoardOnAxis(final board, final currentAxis, final nextAxis) {
 		def movableTokensForAxis = KindOfToken.values().findAll { it.axis == nextAxis && it.isMovable }
-		return rotateBoardOnAxis(
+		def rotateTowardsNextAxis = this.&rotateBoardOnAxis.rcurry(nextAxis, currentAxis)
+		def rotateBack = this.&rotateBoardOnAxis.rcurry(currentAxis, nextAxis)
+		return rotateBack(
 				computeNewBoard(
-						rotateBoardOnAxis(board, currentAxis, nextAxis),
+						rotateTowardsNextAxis(board),
 						movableTokensForAxis
-				),
-				nextAxis,
-				currentAxis
+				)
 		)
 	}
 
-	def rotateBoardOnAxis(board, startFromAxis, goToAxis) {
-		def needsToRotate = (startFromAxis == Axis.Vertical && goToAxis == Axis.Horizontal) ||
-		                    (startFromAxis == Axis.Horizontal && goToAxis == Axis.Vertical)
-
+	def rotateBoardOnAxis(final board, final startFromAxis, final goToAxis) {
+		def axesAreDifferent = (startFromAxis != goToAxis)
+		def noneOfTheAxesAreNeutral = (startFromAxis != Axis.None) && (goToAxis != Axis.None)
+		def needsToRotate = axesAreDifferent && noneOfTheAxesAreNeutral
 		return needsToRotate ? board.transpose() : board
 	}
 
-	def computeNewBoard(board, movableTokens) {
-		def results = board.indexed().findResults { index, line ->
-			def intersection = line.intersect(movableTokens)
-			def existingToken = intersection ? intersection.first() : null
-			if (existingToken) return beforeIndex(index, board) + [computeLineOrColumnAfterMove(line, existingToken)] + afterIndex(board, index)
-			else return null
-		}
-
-		return results ? results.first() : null
+	def computeNewBoard(final board, final movableTokens) {
+		def computeNewBoardOnLineChange = this.&computeNewBoardWhenLineChanged.rcurry(board)
+		board.findResult { line -> computeNewBoardOnLineChange(line, findOneOfTheTokensInLine(line, movableTokens)) }
 	}
 
-	private computeLineOrColumnAfterMove(line, existingToken) {
-		def beforeAndAfter = [before: beforeToken(line, existingToken), after: afterToken(line, existingToken)]
+	private static findOneOfTheTokensInLine(final line, final movableTokens) {
+		return firstOrNull(line.intersect(movableTokens))
+	}
+
+	private computeNewBoardWhenLineChanged(final line, final existingToken, final board) {
+		if (!existingToken) return null
+
+		return beforeElement(board, line) +
+		       [computeLineOrColumnAfterMove(line, existingToken)] +
+		       afterElement(board, line)
+	}
+
+	private computeLineOrColumnAfterMove(final line, final existingToken) {
+		def beforeAndAfter = [before: beforeElement(line, existingToken), after: afterElement(line, existingToken)]
 		def result = moveOnAxis(existingToken, beforeAndAfter)
 		return result.before + [existingToken] + result.after
 	}
 
-	private moveOnAxis(existingToken, beforeAndAfter) {
+	private moveOnAxis(final existingToken, final beforeAndAfter) {
 		switch (existingToken.directionOnAxis) {
 			case DirectionOnAxis.Forward:
 				return computeNewBeforeAndNewAfterOnMoveForwardOnAxis(beforeAndAfter)
@@ -267,37 +270,37 @@ class PacmanSpec extends Specification {
 		}
 	}
 
-	def beforeToken(line, token) {
+	def beforeElement(final line, final token) {
 		def tokenIndex = line.findIndexOf { it == token }
 		return beforeIndex(tokenIndex, line)
 	}
 
-	private beforeIndex(int index, line) {
+	private static beforeIndex(final int index, final line) {
 		return line.take(index)
 	}
 
-	def afterToken(line, token) {
+	def afterElement(final line, final token) {
 		def tokenIndex = line.findIndexOf { it == token }
 		return afterIndex(line, tokenIndex)
 	}
 
-	private afterIndex(line, int index) {
+	private static afterIndex(final line, final int index) {
 		def afterSubLineTokenCount = line.size() - index - 1
 		return line.takeRight(afterSubLineTokenCount)
 	}
 
-	def computeNewBeforeAndNewAfterOnMoveForwardOnAxis(beforeAndAfter) {
+	def computeNewBeforeAndNewAfterOnMoveForwardOnAxis(final beforeAndAfter) {
 		def pacmanAttemptsToMoveBeyondTheEndOfTheLine = (beforeAndAfter.after.isEmpty())
 		return pacmanAttemptsToMoveBeyondTheEndOfTheLine ?
 		       [before: emptyPartialLine, after: emptySpaceAfter(minusFirst(beforeAndAfter.before))] :
 		       [before: emptySpaceAfter(beforeAndAfter.before), after: minusFirst(beforeAndAfter.after)]
 	}
 
-	def computeNewBeforeAndNewAfterOnMoveBackwardOnAxis(beforeAndAfter) {
+	def computeNewBeforeAndNewAfterOnMoveBackwardOnAxis(final beforeAndAfter) {
 		return reverseBeforeAndAfterMap(computeNewBeforeAndNewAfterOnMoveForwardOnAxis(reverseBeforeAndAfterMap(beforeAndAfter)))
 	}
 
-	def reverseBeforeAndAfterMap(beforeAndAfter) {
+	def reverseBeforeAndAfterMap(final beforeAndAfter) {
 		return [before: beforeAndAfter.after.reverse(), after: beforeAndAfter.before.reverse()]
 	}
 
@@ -307,5 +310,9 @@ class PacmanSpec extends Specification {
 
 	def minusFirst(final def partialLine) {
 		partialLine.takeRight(partialLine.size() - 1)
+	}
+
+	static def firstOrNull(final def collection) {
+		collection ? collection.first() : null
 	}
 }
