@@ -235,10 +235,7 @@ class PacmanSpec extends Specification {
 	}
 
 	private static rotateBoardOnAxis(final board, final startFromAxis, final goToAxis) {
-		def axesAreDifferent = (startFromAxis != goToAxis)
-		def noneOfTheAxesAreNeutral = (startFromAxis != None) && (goToAxis != None)
-		def needsToRotate = axesAreDifferent && noneOfTheAxesAreNeutral
-		return needsToRotate ? board.transpose() : board
+		return (startFromAxis != goToAxis) ? board.transpose() : board
 	}
 
 	private static computeNewBoard(final board, final movableTokens) {
