@@ -239,34 +239,34 @@ class PacmanSpec extends Specification {
 	}
 
 	private static computeNewBoard(final board, final movableTokens) {
-		board.findResult { line ->
+		board.collect { line ->
 			def token = findOneOfTheTokensInLine(line, movableTokens)
-			if (token == NONE) return null
-			else computeNewBoardWhenLineChanged(board, line, token)
-		}
+			if (token == NONE) return NONE
+			else computeBoardAfterLineChange(board, line, token)
+		}.find{it != NONE}
 	}
 
 	private static findOneOfTheTokensInLine(final line, final movableTokens) {
 		return firstOrNone(line.intersect(movableTokens))
 	}
 
-	private static computeNewBoardWhenLineChanged(final board, final line, final existingToken) {
-		return computeNew(board,
-		                  line,
-		                  identityClosure,
-		                  { theLine -> computeLineOrColumnAfterMove(theLine, existingToken) }
+	private static computeBoardAfterLineChange(final board, final line, final existingToken) {
+		return computeCollectionChange(board,
+		                               line,
+		                               identityClosure,
+		                               { theLine -> computeLineAfterMove(theLine, existingToken) }
 		)
 	}
 
-	private static computeLineOrColumnAfterMove(final line, final existingToken) {
-		return computeNew(line,
-		                  existingToken,
-		                  { beforeAndAfter -> moveOnAxis(existingToken, beforeAndAfter) },
-		                  identityClosure
+	private static computeLineAfterMove(final line, final existingToken) {
+		return computeCollectionChange(line,
+		                               existingToken,
+		                               { beforeAndAfter -> moveOnAxis(existingToken, beforeAndAfter) },
+		                               identityClosure
 		)
 	}
 
-	private static computeNew(final collection, final element, final Closure computeNewBeforeAndAfter, final Closure computeNewElement) {
+	private static computeCollectionChange(final collection, final element, final Closure computeNewBeforeAndAfter, final Closure computeNewElement) {
 		def beforeAndAfter = [before: beforeElement(collection, element), after: afterElement(collection, element)]
 		def result = computeNewBeforeAndAfter(beforeAndAfter)
 		return result.before + [computeNewElement(element)] + result.after
