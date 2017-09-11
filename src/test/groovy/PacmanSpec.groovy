@@ -236,7 +236,11 @@ class PacmanSpec extends Specification {
 	}
 
 	def computeNewBoard(final board, final movableTokens) {
-		board.findResult { line -> computeNewBoardWhenLineChanged(board, line, findOneOfTheTokensInLine(line, movableTokens)) }
+		board.findResult { line ->
+			def token = findOneOfTheTokensInLine(line, movableTokens)
+			if (token == null) return null
+			else computeNewBoardWhenLineChanged(board, line, token)
+		}
 	}
 
 	private static findOneOfTheTokensInLine(final line, final movableTokens) {
@@ -244,7 +248,6 @@ class PacmanSpec extends Specification {
 	}
 
 	private computeNewBoardWhenLineChanged(final board, final line, final existingToken) {
-		if (!existingToken) return null
 		return computeNew(board,
 		                  line,
 		                  identityClosure,
