@@ -12,19 +12,25 @@ class PacmanSpec extends Specification {
 	final static dot = "."
 	final static emptyPartialLine = []
 
-	enum DirectionOnAxis {
-		None,
+	static class None{
+		@Override
+		String toString() {
+			return ":NONE:"
+		}
+	}
+	final static def NONE = new None()
+
+	static enum DirectionOnAxis {
 		Forward,
 		Backward
 	}
 
-	enum Axis {
-		None,
+	static enum Axis {
 		Horizontal,
 		Vertical
 	}
 
-	enum KindOfToken {
+	static enum KindOfToken {
 		Empty,
 		Dot,
 		PacmanLeft(directionOnAxis: DirectionOnAxis.Backward, axis: Axis.Horizontal, isMovable: true),
@@ -32,8 +38,8 @@ class PacmanSpec extends Specification {
 		PacmanDown(directionOnAxis: DirectionOnAxis.Forward, axis: Axis.Vertical, isMovable: true),
 		PacmanUp(directionOnAxis: DirectionOnAxis.Backward, axis: Axis.Vertical, isMovable: true)
 
-		def directionOnAxis = DirectionOnAxis.None
-		def axis = Axis.None
+		def directionOnAxis = None
+		def axis = None
 		def isMovable = false
 
 		@Override
@@ -216,7 +222,7 @@ class PacmanSpec extends Specification {
 		}
 	}
 
-	private computeNextBoardOnAxis(final board, final currentAxis, final nextAxis) {
+	private static computeNextBoardOnAxis(final board, final currentAxis, final nextAxis) {
 		def movableTokensForAxis = KindOfToken.values().findAll { it.axis == nextAxis && it.isMovable }
 		def rotateForward = { aBoard -> rotateBoardOnAxis(aBoard, currentAxis, nextAxis) }
 		def rotateBack = { aBoard -> rotateBoardOnAxis(aBoard, currentAxis, nextAxis) }
@@ -228,26 +234,26 @@ class PacmanSpec extends Specification {
 		)
 	}
 
-	def rotateBoardOnAxis(final board, final startFromAxis, final goToAxis) {
+	private static rotateBoardOnAxis(final board, final startFromAxis, final goToAxis) {
 		def axesAreDifferent = (startFromAxis != goToAxis)
-		def noneOfTheAxesAreNeutral = (startFromAxis != Axis.None) && (goToAxis != Axis.None)
+		def noneOfTheAxesAreNeutral = (startFromAxis != None) && (goToAxis != None)
 		def needsToRotate = axesAreDifferent && noneOfTheAxesAreNeutral
 		return needsToRotate ? board.transpose() : board
 	}
 
-	def computeNewBoard(final board, final movableTokens) {
+	private static computeNewBoard(final board, final movableTokens) {
 		board.findResult { line ->
 			def token = findOneOfTheTokensInLine(line, movableTokens)
-			if (token == null) return null
+			if (token == NONE) return null
 			else computeNewBoardWhenLineChanged(board, line, token)
 		}
 	}
 
 	private static findOneOfTheTokensInLine(final line, final movableTokens) {
-		return firstOrNull(line.intersect(movableTokens))
+		return firstOrNone(line.intersect(movableTokens))
 	}
 
-	private computeNewBoardWhenLineChanged(final board, final line, final existingToken) {
+	private static computeNewBoardWhenLineChanged(final board, final line, final existingToken) {
 		return computeNew(board,
 		                  line,
 		                  identityClosure,
@@ -255,7 +261,7 @@ class PacmanSpec extends Specification {
 		)
 	}
 
-	private computeLineOrColumnAfterMove(final line, final existingToken) {
+	private static computeLineOrColumnAfterMove(final line, final existingToken) {
 		return computeNew(line,
 		                  existingToken,
 		                  { beforeAndAfter -> moveOnAxis(existingToken, beforeAndAfter) },
@@ -263,58 +269,56 @@ class PacmanSpec extends Specification {
 		)
 	}
 
-	private computeNew(final collection, final element, final Closure computeNewBeforeAndAfter, final Closure computeNewElement) {
+	private static computeNew(final collection, final element, final Closure computeNewBeforeAndAfter, final Closure computeNewElement) {
 		def beforeAndAfter = [before: beforeElement(collection, element), after: afterElement(collection, element)]
 		def result = computeNewBeforeAndAfter(beforeAndAfter)
 		return result.before + [computeNewElement(element)] + result.after
 	}
 
-	private moveOnAxis(final existingToken, final beforeAndAfter) {
+	private static moveOnAxis(final existingToken, final beforeAndAfter) {
 		switch (existingToken.directionOnAxis) {
 			case DirectionOnAxis.Forward:
 				return computeNewBeforeAndNewAfterOnMoveForwardOnAxis(beforeAndAfter)
 
 			case DirectionOnAxis.Backward:
 				return computeNewBeforeAndNewAfterOnMoveBackwardOnAxis(beforeAndAfter)
-
-			case DirectionOnAxis.None:
-				return beforeAndAfter
 		}
 	}
 
-	def beforeElement(final collection, final element) {
+
+	private static beforeElement(final collection, final element) {
 		def elementIndex = collection.findIndexOf { it == element }
 		return collection.take(elementIndex)
 	}
 
-	def afterElement(final line, final element) {
+	private static afterElement(final line, final element) {
 		return beforeElement(line.reverse(), element).reverse()
 	}
 
-	def computeNewBeforeAndNewAfterOnMoveForwardOnAxis(final beforeAndAfter) {
+	private static computeNewBeforeAndNewAfterOnMoveForwardOnAxis(final beforeAndAfter) {
 		def pacmanAttemptsToMoveBeyondTheEndOfTheLine = (beforeAndAfter.after.isEmpty())
 		return pacmanAttemptsToMoveBeyondTheEndOfTheLine ?
 		       [before: emptyPartialLine, after: emptySpaceAfter(minusFirst(beforeAndAfter.before))] :
 		       [before: emptySpaceAfter(beforeAndAfter.before), after: minusFirst(beforeAndAfter.after)]
 	}
 
-	def computeNewBeforeAndNewAfterOnMoveBackwardOnAxis(final beforeAndAfter) {
+	private static computeNewBeforeAndNewAfterOnMoveBackwardOnAxis(final beforeAndAfter) {
 		return reverseBeforeAndAfterMap(computeNewBeforeAndNewAfterOnMoveForwardOnAxis(reverseBeforeAndAfterMap(beforeAndAfter)))
 	}
 
-	def reverseBeforeAndAfterMap(final beforeAndAfter) {
+	private static reverseBeforeAndAfterMap(final beforeAndAfter) {
 		return [before: beforeAndAfter.after.reverse(), after: beforeAndAfter.before.reverse()]
 	}
 
-	def emptySpaceAfter(final partialLine) {
+	private static emptySpaceAfter(final partialLine) {
 		partialLine + KindOfToken.Empty
 	}
 
-	def minusFirst(final def partialLine) {
+	private static minusFirst(final def partialLine) {
 		partialLine.takeRight(partialLine.size() - 1)
 	}
 
-	static def firstOrNull(final def collection) {
-		collection ? collection.first() : null
+	private static firstOrNone(final def collection) {
+		collection ? collection.first() : NONE
 	}
 }
