@@ -63,8 +63,14 @@ class PacmanSpec extends Specification {
 
 	def "pacman eats the next dot on the right when it has dots on the right and is oriented towards right"() {
 		given: "a line of dots with pacman in the middle oriented towards right"
-		def initialBoard = [lineOfDots(beforeDotsCount) + KindOfToken.PacmanRight + lineOfDots(afterDotsCount)]
-		def expectedFinalBoard = [lineOfDots(beforeDotsCount) + KindOfToken.Empty + KindOfToken.PacmanRight + lineOfDots(afterDotsCount - 1)]
+		def initialBoard = [
+				lineOfDots(beforeDotsCount) + KindOfToken.PacmanRight + lineOfDots(afterDotsCount),
+				lineOfDots(totalDotsCount)
+		]
+		def expectedFinalBoard = [
+				lineOfDots(beforeDotsCount) + KindOfToken.Empty + KindOfToken.PacmanRight + lineOfDots(afterDotsCount - 1),
+				lineOfDots(totalDotsCount)
+		]
 
 		when: "tick"
 		def boardAfterMove = tick(initialBoard)
@@ -75,6 +81,7 @@ class PacmanSpec extends Specification {
 		where: "dots count"
 		beforeDotsCount << (0..<50)
 		afterDotsCount << Gen.integer(1..100).take(50)
+		totalDotsCount = beforeDotsCount + afterDotsCount + 1
 	}
 
 	def "pacman eats the first dot when all the way to the right and oriented towards right"() {
@@ -189,11 +196,21 @@ class PacmanSpec extends Specification {
 	}
 
 	def computeNewBoard(board, movableTokens) {
-		def line = board.first()
-		def intersection = line.intersect(movableTokens)
-		def existingToken = intersection ? intersection.first() : null
+		if(board.size() == 1) {
+			def line = board.first()
+			def intersection = line.intersect(movableTokens)
+			def existingToken = intersection ? intersection.first() : null
+			return existingToken ? [computeLineOrColumnAfterMove(line, existingToken)] : null
+		}
 
-		return existingToken ? [computeLineOrColumnAfterMove(line, existingToken)] : null
+		if(board.size() == 2){
+			int index = 0
+			def line = board[index]
+			def intersection = line.intersect(movableTokens)
+			def existingToken = intersection ? intersection.first() : null
+			if(existingToken) return beforeIndex(index, board) + [computeLineOrColumnAfterMove(line, existingToken)] + afterIndex(board, index)
+			else return null
+		}
 	}
 
 	private computeLineOrColumnAfterMove(line, existingToken) {
@@ -217,13 +234,20 @@ class PacmanSpec extends Specification {
 
 	def beforeToken(line, token) {
 		def tokenIndex = line.findIndexOf { it == token }
-		def beforeSubLineTokenCount = tokenIndex
-		return line.take(beforeSubLineTokenCount)
+		return beforeIndex(tokenIndex, line)
+	}
+
+	private beforeIndex(int index, line) {
+		return line.take(index)
 	}
 
 	def afterToken(line, token) {
 		def tokenIndex = line.findIndexOf { it == token }
-		def afterSubLineTokenCount = line.size() - tokenIndex - 1
+		return afterIndex(line, tokenIndex)
+	}
+
+	private afterIndex(line, int index) {
+		def afterSubLineTokenCount = line.size() - index - 1
 		return line.takeRight(afterSubLineTokenCount)
 	}
 
