@@ -208,6 +208,7 @@ class PacmanSpec extends Specification {
 	}
 
 	// Production code starts
+	static def identityClosure = { it -> it }
 
 	def tick(final board) {
 		return Axis.values().findResult { nextAxis ->
@@ -217,11 +218,11 @@ class PacmanSpec extends Specification {
 
 	private computeNextBoardOnAxis(final board, final currentAxis, final nextAxis) {
 		def movableTokensForAxis = KindOfToken.values().findAll { it.axis == nextAxis && it.isMovable }
-		def rotateTowardsNextAxis = this.&rotateBoardOnAxis.rcurry(nextAxis, currentAxis)
-		def rotateBack = this.&rotateBoardOnAxis.rcurry(currentAxis, nextAxis)
+		def rotateForward = { aBoard -> rotateBoardOnAxis(aBoard, currentAxis, nextAxis) }
+		def rotateBack = { aBoard -> rotateBoardOnAxis(aBoard, currentAxis, nextAxis) }
 		return rotateBack(
 				computeNewBoard(
-						rotateTowardsNextAxis(board),
+						rotateForward(board),
 						movableTokensForAxis
 				)
 		)
@@ -235,26 +236,34 @@ class PacmanSpec extends Specification {
 	}
 
 	def computeNewBoard(final board, final movableTokens) {
-		def computeNewBoardOnLineChange = this.&computeNewBoardWhenLineChanged.rcurry(board)
-		board.findResult { line -> computeNewBoardOnLineChange(line, findOneOfTheTokensInLine(line, movableTokens)) }
+		board.findResult { line -> computeNewBoardWhenLineChanged(board, line, findOneOfTheTokensInLine(line, movableTokens)) }
 	}
 
 	private static findOneOfTheTokensInLine(final line, final movableTokens) {
 		return firstOrNull(line.intersect(movableTokens))
 	}
 
-	private computeNewBoardWhenLineChanged(final line, final existingToken, final board) {
+	private computeNewBoardWhenLineChanged(final board, final line, final existingToken) {
 		if (!existingToken) return null
-
-		return beforeElement(board, line) +
-		       [computeLineOrColumnAfterMove(line, existingToken)] +
-		       afterElement(board, line)
+		return computeNew(board,
+		                  line,
+		                  identityClosure,
+		                  { theLine -> computeLineOrColumnAfterMove(theLine, existingToken) }
+		)
 	}
 
 	private computeLineOrColumnAfterMove(final line, final existingToken) {
-		def beforeAndAfter = [before: beforeElement(line, existingToken), after: afterElement(line, existingToken)]
-		def result = moveOnAxis(existingToken, beforeAndAfter)
-		return result.before + [existingToken] + result.after
+		return computeNew(line,
+		                  existingToken,
+		                  { beforeAndAfter -> moveOnAxis(existingToken, beforeAndAfter) },
+		                  identityClosure
+		)
+	}
+
+	private computeNew(final collection, final element, final Closure computeNewBeforeAndAfter, final Closure computeNewElement) {
+		def beforeAndAfter = [before: beforeElement(collection, element), after: afterElement(collection, element)]
+		def result = computeNewBeforeAndAfter(beforeAndAfter)
+		return result.before + [computeNewElement(element)] + result.after
 	}
 
 	private moveOnAxis(final existingToken, final beforeAndAfter) {
@@ -270,23 +279,13 @@ class PacmanSpec extends Specification {
 		}
 	}
 
-	def beforeElement(final line, final token) {
-		def tokenIndex = line.findIndexOf { it == token }
-		return beforeIndex(tokenIndex, line)
+	def beforeElement(final collection, final element) {
+		def elementIndex = collection.findIndexOf { it == element }
+		return collection.take(elementIndex)
 	}
 
-	private static beforeIndex(final int index, final line) {
-		return line.take(index)
-	}
-
-	def afterElement(final line, final token) {
-		def tokenIndex = line.findIndexOf { it == token }
-		return afterIndex(line, tokenIndex)
-	}
-
-	private static afterIndex(final line, final int index) {
-		def afterSubLineTokenCount = line.size() - index - 1
-		return line.takeRight(afterSubLineTokenCount)
+	def afterElement(final line, final element) {
+		return beforeElement(line.reverse(), element).reverse()
 	}
 
 	def computeNewBeforeAndNewAfterOnMoveForwardOnAxis(final beforeAndAfter) {
