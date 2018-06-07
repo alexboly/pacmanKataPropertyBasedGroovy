@@ -69,8 +69,13 @@ class PacmanSpec extends Specification {
 
 	def "pacman eats the next dot on the right when it has dots on the right and is oriented towards right"() {
 		given: "a line of dots with pacman in the middle oriented towards right"
-		def lineWithPacman = lineOfDots(beforeDotsCount) + KindOfToken.PacmanRight + lineOfDots(afterDotsCount)
-		def expectedLineWithPacman = lineOfDots(beforeDotsCount) + KindOfToken.Empty + KindOfToken.PacmanRight + lineOfDots(afterDotsCount - 1)
+		def lineWithPacman = 	lineOfDots(beforeDotsCount) + 
+					KindOfToken.PacmanRight + 
+					lineOfDots(afterDotsCount)
+		def expectedLineWithPacman = 	lineOfDots(beforeDotsCount) + 
+						KindOfToken.Empty + 
+						KindOfToken.PacmanRight + 
+						lineOfDots(afterDotsCount - 1)
 		def initialBoard = makeBoard(lineWithPacman)
 		def expectedFinalBoard = makeBoard(expectedLineWithPacman)
 
